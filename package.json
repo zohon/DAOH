@@ -1,0 +1,26 @@
+{
+  "name": "daoh",
+  "version": "1.0.0",
+  "description": "Dark age of hyrule",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "start": "browser-sync start --files \"*, dist/*, css/*\" --server --port 8080"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "deep-freeze": "0.0.1",
+    "expect": "^1.20.2",
+    "lodash": "^4.17.4",
+    "redux": "^3.6.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-loader": "^6.2.10",
+    "babel-plugin-transform-object-rest-spread": "^6.22.0",
+    "babel-preset-env": "^1.1.6",
+    "webpack": "^2.2.0-rc.3"
+  }
+}
