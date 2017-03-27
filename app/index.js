@@ -2,6 +2,8 @@ import {
     createStore,
     combineReducers
 } from 'redux'
+
+
 import expect from 'expect'
 import deepFreeze from "deep-freeze"
 import canvas_main from './canvas_main';
@@ -14,6 +16,8 @@ const todoApp = combineReducers({
     controls : controls.events
 })
 
+
+
 // Create a Redux store holding the state of your app.
 // Its API is { subscribe, dispatch, getState }.
 let store = createStore(todoApp);
@@ -23,8 +27,8 @@ let store = createStore(todoApp);
 // However it can also be handy to persist the current state in the localStorage.
 const render = () => {
     //console.log(store.getState());
-    document.getElementById("counter").innerHTML = "up "+store.getState().controls.position.up+"<br>down "+store.getState().controls.position.down;
-    document.getElementById("action").innerHTML = "left "+store.getState().controls.position.left+"<br>right "+store.getState().controls.position.right;
+    // document.getElementById("counter").innerHTML = "up "+store.getState().controls.position.up+"<br>down "+store.getState().controls.position.down;
+    // document.getElementById("action").innerHTML = "left "+store.getState().controls.position.left+"<br>right "+store.getState().controls.position.right;
 }
 
 store.subscribe(render);
@@ -63,7 +67,13 @@ document.onkeydown = function(e) {
     e = e || window.event;
     var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
     if (charCode) {
-        console.log("Character typed :", String.fromCharCode(charCode),charCode);
+
+        if(charCode == 17) {
+          window.keydown = "ctrl";
+          return;
+        }
+
+        //console.log("Character typed :", String.fromCharCode(charCode),charCode);
         switch (String.fromCharCode(charCode).toLowerCase()) {
             case "&":
             case "z":
@@ -100,6 +110,12 @@ document.onkeyup = function(e) {
     var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
     if (charCode) {
         //console.log("Character typed: " + String.fromCharCode(charCode));
+
+        if(charCode == 17) {
+          window.keydown = "";
+          return;
+        }
+
         switch (String.fromCharCode(charCode).toLowerCase()) {
             case "&":
             case "z":

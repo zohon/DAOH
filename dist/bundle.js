@@ -97,12 +97,12 @@ module.exports = g;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {Object.defineProperty(exports, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createStore__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createStore__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__combineReducers__ = __webpack_require__(57);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__bindActionCreators__ = __webpack_require__(56);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__applyMiddleware__ = __webpack_require__(55);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__compose__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__utils_warning__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__compose__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__utils_warning__ = __webpack_require__(19);
 /* harmony reexport (binding) */ __webpack_require__.d(exports, "createStore", function() { return __WEBPACK_IMPORTED_MODULE_0__createStore__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(exports, "combineReducers", function() { return __WEBPACK_IMPORTED_MODULE_1__combineReducers__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(exports, "bindActionCreators", function() { return __WEBPACK_IMPORTED_MODULE_2__bindActionCreators__["a"]; });
@@ -357,17 +357,668 @@ process.umask = function() { return 0; };
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
+/* WEBPACK VAR INJECTION */(function(_) {
 
-
-var _redux = __webpack_require__(1);
-
-var _utils = __webpack_require__(5);
+var _utils = __webpack_require__(6);
 
 var _utils2 = _interopRequireDefault(_utils);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var speedinfo = 8; // pixel par seconde
+var canvas = document.getElementById('background');
+var context = canvas.getContext('2d');
+context.scale(2, 2);
+
+var backgroundMouse = {};
+var mousedown = false;
+
+var init = function init() {
+    window.onresize = function (event) {
+        calc(canvas);
+    };
+    calc(canvas);
+    document.addEventListener('contextmenu', function (ev) {
+        ev.preventDefault();
+        mousedown = "right";
+        var x = Math.floor(event.clientX / 16.0) * 16;
+        var y = Math.floor(event.clientY / 16.0) * 16;
+        backgroundMouse = {
+            x: x,
+            y: y
+        };
+        return false;
+    }, false);
+
+    document.addEventListener("mousedown", function (event) {
+        mousedown = true;
+        var x = Math.floor(event.clientX / 16.0) * 16;
+        var y = Math.floor(event.clientY / 16.0) * 16;
+        backgroundMouse = {
+            x: x,
+            y: y
+        };
+    });
+    document.addEventListener("mouseup", function (event) {
+        mousedown = false;
+        backgroundMouse = {};
+    });
+
+    document.addEventListener("mousemove", function (event) {
+        var x = Math.floor(event.clientX / 16.0) * 16;
+        var y = Math.floor(event.clientY / 16.0) * 16;
+        backgroundMouse = {
+            x: x,
+            y: y
+        };
+    });
+
+    return context;
+};
+
+var createBlock = function createBlock(datas) {
+
+    var block = _.find(map, {
+        'x': datas.x,
+        'y': datas.y
+    });
+
+    getNear({
+        x: datas.x,
+        y: datas.y
+    });
+
+    if (!block) {
+        map.push({
+            x: datas.x,
+            y: datas.y,
+            type: "block",
+            status: "new"
+        });
+    }
+};
+
+var reset = function reset() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+var calc = function calc(canvas) {
+    var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+
+    var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+};
+
+var lastCalledTime;
+var fps;
+
+window.map = [];
+
+// info element
+
+
+var generateLevel = function generateLevel() {
+    var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 32;
+    var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 32;
+
+    /*
+        for (var i = 0; i < width; i++) {
+            for (var j = 0; j < height; j++) {
+                  var block = {
+                    x: i * 16,
+                    y: j * 16,
+                };
+                  if (i == 0 || j == 0 || i == width - 1 || j == width - 1) {
+                    block = { ...block,
+                        type: 'block',
+                        element: 1
+                    };
+                } else if (j == Math.floor(Math.random() * 36) || i == Math.floor(Math.random() * 36)) {
+                      block = { ...block,
+                        type: 'bush',
+                        element: 0
+                    };
+                } else {
+                    var element = Math.random() * 10;
+                    block = { ...block,
+                        type: 'grass',
+                        element: (element >= 7 ? (element >= 9 ? 1 : (Math.random() * 10 >= 6 ? 6 : 4)) : 0)
+                    };
+                }
+                map.push(block);
+            }
+        }*/
+    console.log(map);
+};
+
+var initdraw = function initdraw(animate) {
+    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+    var draw = function draw() {
+        var infosFps = calcFPS();
+        animate(infosFps);
+        requestAnimationFrame(draw);
+    };
+    generateLevel();
+    var infosFps = calcFPS();
+    animate(infosFps);
+    requestAnimationFrame(draw);
+};
+
+var calcFPS = function calcFPS() {
+    if (!lastCalledTime) {
+        lastCalledTime = Date.now();
+        fps = 0;
+    }
+    var delta = (Date.now() - lastCalledTime) / 1000;
+    lastCalledTime = Date.now();
+    fps = 1 / delta;
+    return fps;
+};
+
+var getNear = function getNear(_ref) {
+    var _ref$x = _ref.x,
+        x = _ref$x === undefined ? 0 : _ref$x,
+        _ref$y = _ref.y,
+        y = _ref$y === undefined ? 0 : _ref$y,
+        _ref$look = _ref.look,
+        look = _ref$look === undefined ? false : _ref$look;
+
+
+    var block = _.find(map, {
+        'x': x,
+        'y': y
+    });
+    var blockEast = _.find(map, {
+        'x': x + 16,
+        'y': y
+    });
+    var blockWest = _.find(map, {
+        'x': x - 16,
+        'y': y
+    });
+    var blockSouth = _.find(map, {
+        'x': x,
+        'y': y + 16
+    });
+    var blockNorth = _.find(map, {
+        'x': x,
+        'y': y - 16
+    });
+
+    var blockNorthWest = _.find(map, {
+        'x': x - 16,
+        'y': y - 16
+    });
+
+    var blockNorthEast = _.find(map, {
+        'x': x + 16,
+        'y': y - 16
+    });
+
+    var blockSouthWest = _.find(map, {
+        'x': x - 16,
+        'y': y + 16
+    });
+
+    var blockSouthEast = _.find(map, {
+        'x': x + 16,
+        'y': y + 16
+    });
+
+    if (look) {
+        return {
+            block: block,
+            blockNorth: blockNorth,
+            blockEast: blockEast,
+            blockSouth: blockSouth,
+            blockWest: blockWest,
+            blockNorthWest: blockNorthWest,
+            blockNorthEast: blockNorthEast,
+            blockSouthWest: blockSouthWest,
+            blockSouthEast: blockSouthEast
+        };
+    }
+
+    if (blockNorth && blockNorth.type == "block") {
+        blockNorth.status = "refresh";
+    }
+    if (blockEast && blockEast.type == "block") {
+        blockEast.status = "refresh";
+    }
+    if (blockSouth && blockSouth.type == "block") {
+        blockSouth.status = "refresh";
+    }
+    if (blockWest && blockWest.type == "block") {
+        blockWest.status = "refresh";
+    }
+
+    if (blockNorthWest && blockNorthWest.type == "block") {
+        blockNorthWest.status = "refresh";
+    }
+    if (blockNorthEast && blockNorthEast.type == "block") {
+        blockNorthEast.status = "refresh";
+    }
+    if (blockSouthWest && blockSouthWest.type == "block") {
+        blockSouthWest.status = "refresh";
+    }
+    if (blockSouthEast && blockSouthEast.type == "block") {
+        blockSouthEast.status = "refresh";
+    }
+};
+
+var tilesImage = _utils2.default.getImage('media/tiles.png');
+var animFlower = 0;
+
+var lastbackgroundMouse = {};
+
+var mouseAction = function mouseAction(params) {
+
+    if (lastbackgroundMouse.x && lastbackgroundMouse.y && !_.isEqual(backgroundMouse, lastbackgroundMouse)) {
+
+        var lastdiffX = backgroundMouse.x - lastbackgroundMouse.x;
+        var lastdiffY = backgroundMouse.y - lastbackgroundMouse.y;
+
+        var nbMissX = Math.abs(lastdiffX / 16);
+        var nbMissY = Math.abs(lastdiffY / 16);
+
+        for (var x = 0; x <= nbMissX; x++) {
+            var newX = 0;
+            if (lastdiffX < 0) {
+                newX = lastbackgroundMouse.x - x * 16;
+            } else {
+                newX = lastbackgroundMouse.x + x * 16;
+            }
+            createBlock({
+                x: newX,
+                y: backgroundMouse.y
+            });
+        }
+
+        for (var y = 0; y <= nbMissY; y++) {
+            var newY = 0;
+            if (lastdiffY < 0) {
+                newY = lastbackgroundMouse.y - y * 16;
+            } else {
+                newY = lastbackgroundMouse.y + y * 16;
+            }
+            createBlock({
+                x: backgroundMouse.x,
+                y: newY
+            });
+        }
+    }
+    lastbackgroundMouse = backgroundMouse;
+    createBlock(backgroundMouse);
+};
+
+var display = function display(store) {
+    //reset();
+
+    if (!mousedown) {
+        lastbackgroundMouse = {};
+        return;
+    }
+
+    if (backgroundMouse && mousedown) {
+        mouseAction();
+    }
+
+    context.imageSmoothingEnabled = false;
+
+    var litenMap = _.filter(map, function (o) {
+
+        return o.status != 'done';
+    });
+
+    _.each(litenMap, function (tile, tilesIndex) {
+
+        var x = tile.x;
+        var y = tile.y;
+
+        tile.status = "done";
+        context.clearRect(0 + x, 0 + y, 16, 16);
+
+        switch (tile.type) {
+            case "block":
+                //context.fillStyle = "#d0c090";
+
+                var blockEast = _.find(map, {
+                    'x': x + 16,
+                    'y': y
+                });
+                var blockWest = _.find(map, {
+                    'x': x - 16,
+                    'y': y
+                });
+                var blockSouth = _.find(map, {
+                    'x': x,
+                    'y': y + 16
+                });
+                var blockNorth = _.find(map, {
+                    'x': x,
+                    'y': y - 16
+                });
+
+                var blockNorthWest = _.find(map, {
+                    'x': x - 16,
+                    'y': y - 16
+                });
+
+                var blockNorthEast = _.find(map, {
+                    'x': x + 16,
+                    'y': y - 16
+                });
+
+                var blockSouthWest = _.find(map, {
+                    'x': x - 16,
+                    'y': y + 16
+                });
+
+                var blockSouthEast = _.find(map, {
+                    'x': x + 16,
+                    'y': y + 16
+                });
+
+                var arryPresent = [];
+                if (blockNorth && blockNorth.type == "block") {
+                    arryPresent.push("N");
+                }
+                if (blockEast && blockEast.type == "block") {
+                    arryPresent.push("E");
+                }
+                if (blockSouth && blockSouth.type == "block") {
+                    arryPresent.push("S");
+                }
+                if (blockWest && blockWest.type == "block") {
+                    arryPresent.push("W");
+                }
+
+                // all block
+                if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W"].sort())) {
+
+                    if (blockNorthWest && blockNorthWest.type == "block") {
+                        arryPresent.push("NW");
+                    }
+                    if (blockNorthEast && blockNorthEast.type == "block") {
+                        arryPresent.push("NE");
+                    }
+                    if (blockSouthWest && blockSouthWest.type == "block") {
+                        arryPresent.push("SW");
+                    }
+                    if (blockSouthEast && blockSouthEast.type == "block") {
+                        arryPresent.push("SE");
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE", "SW"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 7, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE", "SW"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 6, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SE"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 7, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SW"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 6, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "SE", "SW"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 6, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "NW"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 6, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SW"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 7, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 7, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SW"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 7, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 6, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W"].sort())) {
+                        context.drawImage(tilesImage.element, 16 * 5, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        return;
+                    }
+
+                    context.fillStyle = "#705f30";
+                    context.fillRect(0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                // no block
+                if (arryPresent.length == 0) {
+                    context.drawImage(tilesImage.element, 16 * 3, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["N"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 4, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["N", "W", "E"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 4, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["N", "E"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 2, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["N", "W"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 3, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["S"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 5, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["S", "W", "E"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 4, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["S", "E"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 2, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["S", "W"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 3, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["S", "N"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 6, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["W"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 4, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["W", "N", "S"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 5, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["E", "N", "S"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 5, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["E"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 5, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                if (_.isEqual(arryPresent.sort(), ["W", "E"].sort())) {
+                    context.drawImage(tilesImage.element, 16 * 7, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    return;
+                }
+
+                context.fillStyle = "#705f30";
+                context.fillRect(0 + x, 0 + y, 16, 16);
+                shadow(context, 0 + x, 0 + y, 16, 16);
+
+                break;
+            case "bush":
+                context.fillStyle = "#409740";
+                context.fillRect(0 + x, 0 + y, 16, 16);
+                context.drawImage(tilesImage.element, 16 * (1 + tile.element), 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
+
+                break;
+            case "grass":
+                context.fillStyle = "#409740";
+                context.fillRect(0 + x, 0 + y, 16, 16);
+                if (tile.element == 1) {
+
+                    var tagetFlower = 0;
+                    if (animFlower > 0) {
+                        tagetFlower = Math.floor(animFlower) * 16;
+                    }
+
+                    context.drawImage(tilesImage.element, 16 * tile.element + tagetFlower, 0, 16, 16, 0 + x, 0 + y, 16, 16);
+                } else if (tile.element) {
+                    context.drawImage(tilesImage.element, 16 * tile.element, 0, 16, 16, 0 + x, 0 + y, 16, 16);
+                }
+
+                break;
+            default:
+        }
+    });
+
+    animFlower += 0.08;
+    if (animFlower > 3) {
+        animFlower = -1;
+    }
+};
+
+var shadow = function shadow(context) {
+    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+    var width = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 16;
+    var height = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 16;
+
+    var contrast = 100;
+    var factor = 259 * (contrast + 255) / (255 * (259 - contrast));
+
+    var imgData = context.getImageData(x, y, width, height);
+    var pixel = imgData.data;
+    // invert colors
+    var r = 0,
+        g = 1,
+        b = 2,
+        a = 3;
+    for (var p = 0; p < pixel.length; p += 4) {
+        if (pixel[p + r] == 255 && pixel[p + g] == 255 && pixel[p + b] == 255) {
+            // if white then change alpha to 0
+            pixel[p + a] = 0;
+        }
+        // } else if (
+        //     pixel[p + r] == 32 &&
+        //     pixel[p + g] == 39 &&
+        //     pixel[p + b] == 32) {
+        //     pixel[p + a] = 255;
+        // }
+        else {
+                pixel[p + g] = pixel[p + r] / 200 * 255;
+            }
+    }
+    context.putImageData(imgData, x, y);
+};
+module.exports = {
+    reset: reset,
+    init: init,
+    initdraw: initdraw,
+    calc: calc,
+    display: display,
+    getNear: getNear
+};
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _redux = __webpack_require__(1);
+
+var _canvas_debug = __webpack_require__(63);
+
+var _canvas_debug2 = _interopRequireDefault(_canvas_debug);
+
+var _canvas_background = __webpack_require__(4);
+
+var _canvas_background2 = _interopRequireDefault(_canvas_background);
+
+var _utils = __webpack_require__(6);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var speedinfo = 100; // pixel par seconde
 
 var movement = function movement() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
@@ -382,22 +1033,84 @@ var movement = function movement() {
         speed = speedinfo / action.fps;
     }
 
+    var startState = _extends({}, state);
+
     switch (action.type) {
         case 'move_up':
             state.y -= speed;
-            return state;
+            break;
         case 'move_down':
             state.y += speed;
-            return state;
+            break;
         case 'move_left':
             state.x -= speed;
-            return state;
+            break;
         case 'move_right':
             state.x += speed;
-            return state;
+            break;
         default:
-            return state;
     }
+
+    console.log(state);
+    var anti = anticipation(action.type, state);
+
+    if (anti && anti.near && !anti.near.block) {
+        return startState;
+    }
+
+    return state;
+};
+
+var anticipation = function anticipation(type, target) {
+
+    if (!type) {
+        return;
+    }
+
+    var anticipationX = 8;
+    var anticipationY = 18;
+
+    switch (type.toLowerCase()) {
+        case 'up':
+        case 'move_up':
+            anticipationY -= 8;
+            break;
+        case 'down':
+        case 'move_down':
+            anticipationY += 8;
+            break;
+        case 'move_left':
+            anticipationX = -8;
+            break;
+        case 'move_right':
+            anticipationX += 8;
+            break;
+        default:
+    }
+
+    var params = {
+        x: Math.round((target.x + anticipationX) / 16) * 16,
+        y: Math.round((target.y + anticipationY) / 16) * 16,
+        look: true
+    };
+
+    var near = _canvas_background2.default.getNear(params);
+
+    if (false) {
+
+        _canvas_debug2.default.debugContext.fillStyle = "rgba(0,255,0,0.5)";
+        if (!near.block) {
+            _canvas_debug2.default.debugContext.fillStyle = "rgba(255,0,0,0.5)";
+        }
+
+        _canvas_debug2.default.debugContext.clearRect(0, 0, debug.width, debug.height);
+        _canvas_debug2.default.debugContext.fillRect(Math.round((target.x + anticipationX) / 16) * 16, Math.round((target.y + anticipationY) / 16) * 16, 16, 16);
+    }
+
+    return {
+        near: near,
+        anticipate: params
+    };
 };
 
 var action = function action() {
@@ -443,8 +1156,6 @@ var animation = function animation() {
     }
 };
 
-window.library = [];
-
 window.targetanimation = 0;
 window.targetanimationpos = 0;
 var draw = function draw(context, target) {
@@ -477,7 +1188,7 @@ var draw = function draw(context, target) {
         if (!target.animation.status) {
             targetanimationpos = 0;
         }
-        context.drawImage(body.element, targetanimationpos, pos, 32, 32, target.position.x * 10, target.position.y * 10 + 7, 32, 32);
+        context.drawImage(body.element, targetanimationpos, pos, 32, 32, target.position.x, target.position.y + 7, 32, 32);
     }
 
     // Head
@@ -500,11 +1211,40 @@ var draw = function draw(context, target) {
         if (!target.animation.status) {
             targetanimationposHead = 0;
         }
-
-        context.drawImage(head.element, targetanimationposHead, pos, 32, 32, target.position.x * 10, target.position.y * 10, 32, 32);
+        context.drawImage(head.element, targetanimationposHead, pos, 32, 32, target.position.x, target.position.y, 32, 32);
     }
 
+    shadow(context, target.position.x, target.position.y);
+
     return context;
+};
+
+var shadow = function shadow(context, x, y) {
+    var contrast = 100;
+    var factor = 259 * (contrast + 255) / (255 * (259 - contrast));
+
+    var imgData = context.getImageData(x, y, 32, 32);
+    var pixel = imgData.data;
+    // invert colors
+    var r = 0,
+        g = 1,
+        b = 2,
+        a = 3;
+    for (var p = 0; p < pixel.length; p += 4) {
+
+        if (pixel[p + r] == 255 && pixel[p + g] == 255 && pixel[p + b] == 255) // if white then change alpha to 0
+            {
+                //pixel[p+a] = 0;
+            } else if (pixel[p + r] == 40 && pixel[p + g] == 40 && pixel[p + b] == 40) {
+            pixel[p + a] = 255;
+        } else if (pixel[p + a] != 0) {
+            pixel[p + r] = 255;
+            pixel[p + g] = 255;
+            pixel[p + b] = 255;
+            pixel[p + a] = 200;
+        }
+    }
+    context.putImageData(imgData, x, y);
 };
 
 var events = (0, _redux.combineReducers)({
@@ -519,7 +1259,7 @@ module.exports = {
 };
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -527,19 +1267,25 @@ module.exports = {
 
 var getImage = function getImage(name) {
 
+    if (window.library === undefined) {
+        window.library = [];
+    }
+
     if (window.library && window.library[name]) {
         return window.library[name];
     } else {
 
         var img1 = new Image();
-        img1.onload = function () {
-            window.library[name].status = "loaded";
-        };
-        img1.src = name;
 
         window.library[name] = {
             element: img1
         };
+
+        img1.onload = function () {
+            window.library[name].status = "loaded";
+        };
+
+        img1.src = name;
 
         return window.library[name];
     }
@@ -550,7 +1296,7 @@ module.exports = {
 };
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -564,7 +1310,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _has = __webpack_require__(9);
+var _has = __webpack_require__(10);
 
 var _has2 = _interopRequireDefault(_has);
 
@@ -576,9 +1322,9 @@ var _assert = __webpack_require__(2);
 
 var _assert2 = _interopRequireDefault(_assert);
 
-var _SpyUtils = __webpack_require__(7);
+var _SpyUtils = __webpack_require__(8);
 
-var _TestUtils = __webpack_require__(8);
+var _TestUtils = __webpack_require__(9);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -966,7 +1712,7 @@ for (var alias in aliases) {
 }exports.default = Expectation;
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -983,7 +1729,7 @@ var _assert = __webpack_require__(2);
 
 var _assert2 = _interopRequireDefault(_assert);
 
-var _TestUtils = __webpack_require__(8);
+var _TestUtils = __webpack_require__(9);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1093,7 +1839,7 @@ var spyOn = exports.spyOn = function spyOn(object, methodName) {
 };
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1106,7 +1852,7 @@ exports.stringContains = exports.objectContains = exports.arrayContains = export
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-var _isRegex = __webpack_require__(11);
+var _isRegex = __webpack_require__(12);
 
 var _isRegex2 = _interopRequireDefault(_isRegex);
 
@@ -1114,7 +1860,7 @@ var _why = __webpack_require__(40);
 
 var _why2 = _interopRequireDefault(_why);
 
-var _objectKeys = __webpack_require__(15);
+var _objectKeys = __webpack_require__(16);
 
 var _objectKeys2 = _interopRequireDefault(_objectKeys);
 
@@ -1245,7 +1991,7 @@ var stringContains = exports.stringContains = function stringContains(string, va
 };
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 var bind = __webpack_require__(33);
@@ -1254,7 +2000,7 @@ module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1300,7 +2046,7 @@ module.exports = function isCallable(value) {
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1326,7 +2072,7 @@ module.exports = function isRegex(value) {
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1360,7 +2106,7 @@ if (hasSymbols) {
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1374,7 +2120,7 @@ var Symbol = __WEBPACK_IMPORTED_MODULE_0__root_js__["a" /* default */].Symbol;
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1446,7 +2192,7 @@ function isPlainObject(value) {
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1593,7 +2339,7 @@ module.exports = keysShim;
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1634,11 +2380,11 @@ function compose() {
 }
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable__ = __webpack_require__(58);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_symbol_observable__);
 /* harmony export (binding) */ __webpack_require__.d(exports, "b", function() { return ActionTypes; });
@@ -1893,7 +2639,7 @@ function createStore(reducer, preloadedState, enhancer) {
 }
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1921,7 +2667,7 @@ function warning(message) {
 }
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -1929,7 +2675,7 @@ function warning(message) {
 /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 module.exports = function(module) {
@@ -1955,590 +2701,13 @@ module.exports = function(module) {
 
 
 /***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(_) {
-
-var _utils = __webpack_require__(5);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var canvas = document.getElementById('background');
-var context = canvas.getContext('2d');
-context.scale(2, 2);
-
-var backgroundMouse = {};
-var mousedown = false;
-
-var init = function init() {
-    window.onresize = function (event) {
-        calc(canvas);
-    };
-    calc(canvas);
-
-    document.addEventListener("mousedown", function (event) {
-        mousedown = true;
-        var x = Math.floor(event.clientX / 16.0) * 16;
-        var y = Math.floor(event.clientY / 16.0) * 16;
-        backgroundMouse = {
-            x: x,
-            y: y
-        };
-    });
-    document.addEventListener("mouseup", function (event) {
-        mousedown = false;
-        backgroundMouse = {};
-    });
-
-    document.addEventListener("mousemove", function (event) {
-        var x = Math.floor(event.clientX / 16.0) * 16;
-        var y = Math.floor(event.clientY / 16.0) * 16;
-        backgroundMouse = {
-            x: x,
-            y: y
-        };
-    });
-
-    return context;
-};
-
-var createBlock = function createBlock(datas) {
-
-    var block = _.find(map, {
-        'x': datas.x,
-        'y': datas.y
-    });
-
-    getNear({
-        x: datas.x,
-        y: datas.y
-    });
-
-    if (!block) {
-        map.push({
-            x: datas.x,
-            y: datas.y,
-            type: "block",
-            status: "new"
-        });
-    }
-};
-
-var reset = function reset() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-};
-
-var calc = function calc(canvas) {
-    var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-
-    var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-
-    canvas.width = width;
-    canvas.height = height;
-};
-
-var lastCalledTime;
-var fps;
-
-window.map = [];
-
-// info element
-
-
-var generateLevel = function generateLevel() {
-    var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 32;
-    var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 32;
-
-    /*
-        for (var i = 0; i < width; i++) {
-            for (var j = 0; j < height; j++) {
-                  var block = {
-                    x: i * 16,
-                    y: j * 16,
-                };
-                  if (i == 0 || j == 0 || i == width - 1 || j == width - 1) {
-                    block = { ...block,
-                        type: 'block',
-                        element: 1
-                    };
-                } else if (j == Math.floor(Math.random() * 36) || i == Math.floor(Math.random() * 36)) {
-                      block = { ...block,
-                        type: 'bush',
-                        element: 0
-                    };
-                } else {
-                    var element = Math.random() * 10;
-                    block = { ...block,
-                        type: 'grass',
-                        element: (element >= 7 ? (element >= 9 ? 1 : (Math.random() * 10 >= 6 ? 6 : 4)) : 0)
-                    };
-                }
-                map.push(block);
-            }
-        }*/
-    console.log(map);
-};
-
-var initdraw = function initdraw(animate) {
-
-    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-    var draw = function draw() {
-        var infosFps = calcFPS();
-        animate(infosFps);
-        requestAnimationFrame(draw);
-    };
-    generateLevel();
-    var infosFps = calcFPS();
-    animate(infosFps);
-    requestAnimationFrame(draw);
-};
-
-var calcFPS = function calcFPS() {
-    if (!lastCalledTime) {
-        lastCalledTime = Date.now();
-        fps = 0;
-    }
-    var delta = (Date.now() - lastCalledTime) / 1000;
-    lastCalledTime = Date.now();
-    fps = 1 / delta;
-    return fps;
-};
-
-var getNear = function getNear(_ref) {
-    var _ref$x = _ref.x,
-        x = _ref$x === undefined ? 0 : _ref$x,
-        _ref$y = _ref.y,
-        y = _ref$y === undefined ? 0 : _ref$y;
-
-
-    var blockEast = _.find(map, {
-        'x': x + 16,
-        'y': y
-    });
-    var blockWest = _.find(map, {
-        'x': x - 16,
-        'y': y
-    });
-    var blockSouth = _.find(map, {
-        'x': x,
-        'y': y + 16
-    });
-    var blockNorth = _.find(map, {
-        'x': x,
-        'y': y - 16
-    });
-
-    var blockNorthWest = _.find(map, {
-        'x': x - 16,
-        'y': y - 16
-    });
-
-    var blockNorthEast = _.find(map, {
-        'x': x + 16,
-        'y': y - 16
-    });
-
-    var blockSouthWest = _.find(map, {
-        'x': x - 16,
-        'y': y + 16
-    });
-
-    var blockSouthEast = _.find(map, {
-        'x': x + 16,
-        'y': y + 16
-    });
-
-    if (blockNorth && blockNorth.type == "block") {
-        blockNorth.status = "refresh";
-    }
-    if (blockEast && blockEast.type == "block") {
-        blockEast.status = "refresh";
-    }
-    if (blockSouth && blockSouth.type == "block") {
-        blockSouth.status = "refresh";
-    }
-    if (blockWest && blockWest.type == "block") {
-        blockWest.status = "refresh";
-    }
-
-    if (blockNorthWest && blockNorthWest.type == "block") {
-        blockNorthWest.status = "refresh";
-    }
-    if (blockNorthEast && blockNorthEast.type == "block") {
-        blockNorthEast.status = "refresh";
-    }
-    if (blockSouthWest && blockSouthWest.type == "block") {
-        blockSouthWest.status = "refresh";
-    }
-    if (blockSouthEast && blockSouthEast.type == "block") {
-        blockSouthEast.status = "refresh";
-    }
-};
-
-var tilesImage = _utils2.default.getImage('media/tiles.png');
-var animFlower = 0;
-var display = function display(store) {
-    //reset();
-
-    if (!mousedown) {
-        return;
-    }
-
-    if (backgroundMouse && mousedown) {
-        //console.log(backgroundMouse);
-        createBlock(backgroundMouse);
-    }
-
-    context.imageSmoothingEnabled = false;
-
-    var litenMap = _.filter(map, function (o) {
-        return o.status != 'done';
-    });
-    console.log(litenMap.length);
-
-    _.each(litenMap, function (tile, tilesIndex) {
-
-        var x = tile.x;
-        var y = tile.y;
-
-        tile.status = "done";
-        context.clearRect(0 + x, 0 + y, 16, 16);
-        switch (tile.type) {
-            case "block":
-                //context.fillStyle = "#d0c090";
-
-                var blockEast = _.find(map, {
-                    'x': x + 16,
-                    'y': y
-                });
-                var blockWest = _.find(map, {
-                    'x': x - 16,
-                    'y': y
-                });
-                var blockSouth = _.find(map, {
-                    'x': x,
-                    'y': y + 16
-                });
-                var blockNorth = _.find(map, {
-                    'x': x,
-                    'y': y - 16
-                });
-
-                var blockNorthWest = _.find(map, {
-                    'x': x - 16,
-                    'y': y - 16
-                });
-
-                var blockNorthEast = _.find(map, {
-                    'x': x + 16,
-                    'y': y - 16
-                });
-
-                var blockSouthWest = _.find(map, {
-                    'x': x - 16,
-                    'y': y + 16
-                });
-
-                var blockSouthEast = _.find(map, {
-                    'x': x + 16,
-                    'y': y + 16
-                });
-
-                var arryPresent = [];
-                if (blockNorth && blockNorth.type == "block") {
-                    arryPresent.push("N");
-                }
-                if (blockEast && blockEast.type == "block") {
-                    arryPresent.push("E");
-                }
-                if (blockSouth && blockSouth.type == "block") {
-                    arryPresent.push("S");
-                }
-                if (blockWest && blockWest.type == "block") {
-                    arryPresent.push("W");
-                }
-
-                // all block
-                if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W"].sort())) {
-
-                    if (blockNorthWest && blockNorthWest.type == "block") {
-                        arryPresent.push("NW");
-                    }
-                    if (blockNorthEast && blockNorthEast.type == "block") {
-                        arryPresent.push("NE");
-                    }
-                    if (blockSouthWest && blockSouthWest.type == "block") {
-                        arryPresent.push("SW");
-                    }
-                    if (blockSouthEast && blockSouthEast.type == "block") {
-                        arryPresent.push("SE");
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE", "SW"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 7, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE", "SW"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 6, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SE"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 7, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SW"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 6, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "SE", "SW"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 6, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "NW"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 6, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SW"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 7, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 7, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SW"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 7, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 6, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W"].sort())) {
-                        context.drawImage(tilesImage.element, 16 * 5, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-                        return;
-                    }
-
-                    context.fillStyle = "#705f30";
-                    context.fillRect(0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                // no block
-                if (arryPresent.length == 0) {
-                    //  context.fillStyle = "#705f30";
-                    //  context.fillRect(0 + x, 0 + y, 16, 16);
-                    context.drawImage(tilesImage.element, 16 * 3, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                    //context.drawImage(tilesImage.element, 16 * 6, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["N"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 4, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["N", "W", "E"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 4, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["N", "E"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 2, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["N", "W"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 3, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["S"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 5, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["S", "W", "E"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 4, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["S", "E"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 2, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["S", "W"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 3, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["S", "N"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 6, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["W"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 4, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["W", "N", "S"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 5, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["E", "N", "S"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 5, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["E"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 5, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                if (_.isEqual(arryPresent.sort(), ["W", "E"].sort())) {
-                    context.drawImage(tilesImage.element, 16 * 7, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    return;
-                }
-
-                context.fillStyle = "#705f30";
-                context.fillRect(0 + x, 0 + y, 16, 16);
-
-                break;
-            case "bush":
-                context.fillStyle = "#409740";
-                context.fillRect(0 + x, 0 + y, 16, 16);
-                context.drawImage(tilesImage.element, 16 * (1 + tile.element), 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-
-                break;
-            case "grass":
-                context.fillStyle = "#409740";
-                context.fillRect(0 + x, 0 + y, 16, 16);
-                if (tile.element == 1) {
-
-                    var tagetFlower = 0;
-                    if (animFlower > 0) {
-                        tagetFlower = Math.floor(animFlower) * 16;
-                    }
-
-                    context.drawImage(tilesImage.element, 16 * tile.element + tagetFlower, 0, 16, 16, 0 + x, 0 + y, 16, 16);
-                } else if (tile.element) {
-                    context.drawImage(tilesImage.element, 16 * tile.element, 0, 16, 16, 0 + x, 0 + y, 16, 16);
-                }
-
-                break;
-            default:
-        }
-    });
-
-    // var x = 0;
-    // _.each(map, function(tiles, tilesIndex) {
-    //     var y = 0;
-    //     _.each(tiles, function(tile, tileIndex) {
-    //         switch (tile.type) {
-    //             case "block":
-    //                 //context.fillStyle = "#d0c090";
-    //                 context.fillStyle = "#409740";
-    //                 context.fillRect(0 + x, 0 + y, 16, 16);
-    //
-    //                 if(x == 0) { // left
-    //
-    //                   if(y == 0) { // top
-    //                     context.drawImage(tilesImage.element, 16*6, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else if(y / 16 == _.size(map)-1) { // bottom
-    //                     context.drawImage(tilesImage.element, 16*6, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else {
-    //                     context.drawImage(tilesImage.element, 16*5, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   }
-    //
-    //                 } else if(x / 16 == _.size(map)-1) { // right
-    //                   if(y == 0) { // top
-    //                     context.drawImage(tilesImage.element, 16*7, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else if(y / 16 == _.size(map)-1){ // bottom
-    //                     context.drawImage(tilesImage.element, 16*7, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else {
-    //                     context.drawImage(tilesImage.element, 16*5, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   }
-    //
-    //                 } else if(y == 0) { // top
-    //                   context.drawImage(tilesImage.element, 16*4, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 } else if(y / 16 == _.size(map)-1) { // bottom
-    //                   context.drawImage(tilesImage.element, 16*4, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 } else {
-    //                   context.fillStyle = "#807740";
-    //                   context.fillRect(0 + x, 0 + y, 16, 16);
-    //                   context.drawImage(tilesImage.element, 16*0, 16, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 }
-    //                 break;
-    //             case "bush":
-    //                 context.fillStyle = "#409740";
-    //                 context.fillRect(0 + x, 0 + y, 16, 16);
-    //                 context.drawImage(tilesImage.element, 16 * (1+tile.element) , 16*1, 16, 16, 0 + x, 0 + y, 16, 16);
-    //
-    //                 break;
-    //             case "grass":
-    //                 context.fillStyle = "#409740";
-    //                 context.fillRect(0 + x, 0 + y, 16, 16);
-    //                 if (tile.element == 1) {
-    //
-    //                     var tagetFlower = 0;
-    //                     if(animFlower > 0) {
-    //                       tagetFlower = (Math.floor(animFlower)*16);
-    //                     }
-    //
-    //                     context.drawImage(tilesImage.element, 16 * tile.element + tagetFlower, 0, 16, 16, 0 + x, 0 + y, 16, 16);
-    //
-    //                 } else if (tile.element){
-    //                     context.drawImage(tilesImage.element, 16 * tile.element, 0, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 }
-    //
-    //                 break;
-    //             default:
-    //         }
-    //         y += 16;
-    //     });
-    //     x += 16;
-    // });
-
-    animFlower += 0.08;
-    if (animFlower > 3) {
-        animFlower = -1;
-    }
-};
-
-module.exports = {
-    reset: reset,
-    init: init,
-    initdraw: initdraw,
-    calc: calc,
-    display: display
-};
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _player = __webpack_require__(4);
+var _player = __webpack_require__(5);
 
 var _player2 = _interopRequireDefault(_player);
 
@@ -2727,11 +2896,11 @@ module.exports = function deepFreeze (o) {
 "use strict";
 
 
-var _Expectation = __webpack_require__(6);
+var _Expectation = __webpack_require__(7);
 
 var _Expectation2 = _interopRequireDefault(_Expectation);
 
-var _SpyUtils = __webpack_require__(7);
+var _SpyUtils = __webpack_require__(8);
 
 var _assert = __webpack_require__(2);
 
@@ -6533,7 +6702,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   /*--------------------------------------------------------------------------*/
 
   // Some AMD build optimizers, like r.js, check for condition patterns like:
-  if ("function" == 'function' && _typeof(__webpack_require__(19)) == 'object' && __webpack_require__(19)) {
+  if ("function" == 'function' && _typeof(__webpack_require__(20)) == 'object' && __webpack_require__(20)) {
     // Expose Lodash on the global object to prevent errors when Lodash is
     // loaded by a script tag in the presence of an AMD loader.
     // See http://requirejs.org/docs/errors.html#mismatch for more details.
@@ -6557,7 +6726,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       root._ = lodash;
     }
 }).call(undefined);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(20)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(21)(module)))
 
 /***/ },
 /* 27 */
@@ -8484,7 +8653,7 @@ function isnan (val) {
 "use strict";
 
 
-var keys = __webpack_require__(15);
+var keys = __webpack_require__(16);
 var foreach = __webpack_require__(31);
 var hasSymbols = typeof Symbol === 'function' && typeof Symbol() === 'symbol';
 
@@ -8551,7 +8720,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _Expectation = __webpack_require__(6);
+var _Expectation = __webpack_require__(7);
 
 var _Expectation2 = _interopRequireDefault(_Expectation);
 
@@ -8759,7 +8928,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 "use strict";
 
 
-var isCallable = __webpack_require__(10);
+var isCallable = __webpack_require__(11);
 var fnToStr = Function.prototype.toString;
 var isNonArrowFnRegex = /^\s*function/;
 var isArrowFnWithParensRegex = /^\([^\)]*\) *=>/;
@@ -8868,7 +9037,7 @@ module.exports = function () {
 "use strict";
 
 
-var isSymbol = __webpack_require__(12);
+var isSymbol = __webpack_require__(13);
 
 module.exports = function getSymbolIterator() {
 	var symbolIterator = typeof Symbol === 'function' && isSymbol(Symbol.iterator) ? Symbol.iterator : null;
@@ -8895,16 +9064,16 @@ module.exports = function getSymbolIterator() {
 var ObjectPrototype = Object.prototype;
 var toStr = ObjectPrototype.toString;
 var booleanValue = Boolean.prototype.valueOf;
-var has = __webpack_require__(9);
+var has = __webpack_require__(10);
 var isArrowFunction = __webpack_require__(35);
 var isBoolean = __webpack_require__(36);
 var isDate = __webpack_require__(37);
 var isGenerator = __webpack_require__(41);
 var isNumber = __webpack_require__(42);
-var isRegex = __webpack_require__(11);
+var isRegex = __webpack_require__(12);
 var isString = __webpack_require__(43);
-var isSymbol = __webpack_require__(12);
-var isCallable = __webpack_require__(10);
+var isSymbol = __webpack_require__(13);
+var isCallable = __webpack_require__(11);
 
 var isProto = Object.prototype.isPrototypeOf;
 
@@ -9295,7 +9464,7 @@ module.exports = Array.isArray || function (arr) {
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Symbol_js__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Symbol_js__ = __webpack_require__(14);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__getRawTag_js__ = __webpack_require__(48);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__objectToString_js__ = __webpack_require__(49);
 
@@ -9359,7 +9528,7 @@ var getPrototype = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__overArg_js
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Symbol_js__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Symbol_js__ = __webpack_require__(14);
 
 
 /** Used for built-in method references. */
@@ -9754,7 +9923,7 @@ module.exports = function isArguments(value) {
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__compose__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__compose__ = __webpack_require__(17);
 /* harmony export (immutable) */ exports["a"] = applyMiddleware;
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -9864,9 +10033,9 @@ function bindActionCreators(actionCreators, dispatch) {
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createStore__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash_es_isPlainObject__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_warning__ = __webpack_require__(18);
+/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createStore__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash_es_isPlainObject__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_warning__ = __webpack_require__(19);
 /* harmony export (immutable) */ exports["a"] = combineReducers;
 
 
@@ -10040,7 +10209,7 @@ if (typeof self !== 'undefined') {
 
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(20)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(21)(module)))
 
 /***/ },
 /* 60 */
@@ -10254,11 +10423,11 @@ var _canvas_main = __webpack_require__(22);
 
 var _canvas_main2 = _interopRequireDefault(_canvas_main);
 
-var _canvas_background = __webpack_require__(21);
+var _canvas_background = __webpack_require__(4);
 
 var _canvas_background2 = _interopRequireDefault(_canvas_background);
 
-var _player = __webpack_require__(4);
+var _player = __webpack_require__(5);
 
 var _player2 = _interopRequireDefault(_player);
 
@@ -10282,8 +10451,8 @@ var store = (0, _redux.createStore)(todoApp);
 // However it can also be handy to persist the current state in the localStorage.
 var render = function render() {
     //console.log(store.getState());
-    document.getElementById("counter").innerHTML = "up " + store.getState().controls.position.up + "<br>down " + store.getState().controls.position.down;
-    document.getElementById("action").innerHTML = "left " + store.getState().controls.position.left + "<br>right " + store.getState().controls.position.right;
+    // document.getElementById("counter").innerHTML = "up "+store.getState().controls.position.up+"<br>down "+store.getState().controls.position.down;
+    // document.getElementById("action").innerHTML = "left "+store.getState().controls.position.left+"<br>right "+store.getState().controls.position.right;
 };
 
 store.subscribe(render);
@@ -10321,7 +10490,13 @@ document.onkeydown = function (e) {
     e = e || window.event;
     var charCode = typeof e.which == "number" ? e.which : e.keyCode;
     if (charCode) {
-        console.log("Character typed :", String.fromCharCode(charCode), charCode);
+
+        if (charCode == 17) {
+            window.keydown = "ctrl";
+            return;
+        }
+
+        //console.log("Character typed :", String.fromCharCode(charCode),charCode);
         switch (String.fromCharCode(charCode).toLowerCase()) {
             case "&":
             case "z":
@@ -10358,6 +10533,12 @@ document.onkeyup = function (e) {
     var charCode = typeof e.which == "number" ? e.which : e.keyCode;
     if (charCode) {
         //console.log("Character typed: " + String.fromCharCode(charCode));
+
+        if (charCode == 17) {
+            window.keydown = "";
+            return;
+        }
+
         switch (String.fromCharCode(charCode).toLowerCase()) {
             case "&":
             case "z":
@@ -10415,6 +10596,38 @@ document.onkeyup = function (e) {
 // testcounter();
 // testaction();
 // console.log("all tests passed.");
+
+/***/ },
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _utils = __webpack_require__(6);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var debug = document.getElementById("debug");
+var debugContext = debug.getContext("2d");
+
+var calc = function calc() {
+  var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+
+  var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+  debug.width = width;
+  debug.height = height;
+};
+
+calc();
+
+module.exports = {
+  debug: debug,
+  debugContext: debugContext
+};
 
 /***/ }
 /******/ ]);

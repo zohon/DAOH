@@ -11,6 +11,17 @@ const init = () => {
         calc(canvas);
     };
     calc(canvas);
+    document.addEventListener('contextmenu', function(ev) {
+        ev.preventDefault();
+        mousedown = "right";
+        var x = Math.floor(event.clientX / 16.0) * 16;
+        var y = Math.floor(event.clientY / 16.0) * 16;
+        backgroundMouse = {
+            x: x,
+            y: y
+        };
+        return false;
+    }, false);
 
     document.addEventListener("mousedown", function(event) {
         mousedown = true;
@@ -20,7 +31,6 @@ const init = () => {
             x: x,
             y: y
         };
-
     });
     document.addEventListener("mouseup", function(event) {
         mousedown = false;
@@ -47,8 +57,8 @@ const createBlock = (datas) => {
     });
 
     getNear({
-      x : datas.x,
-      y : datas.y
+        x: datas.x,
+        y: datas.y
     });
 
     if (!block) {
@@ -59,8 +69,6 @@ const createBlock = (datas) => {
             status: "new"
         });
     }
-
-
 
 }
 
@@ -124,8 +132,6 @@ const generateLevel = (width = 32, height = 32) => {
 }
 
 const initdraw = (animate) => {
-
-
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
     const draw = () => {
         var infosFps = calcFPS();
@@ -150,93 +156,164 @@ const calcFPS = () => {
 }
 
 
-var getNear = ({ x = 0, y = 0}) => {
+var getNear = ({
+    x = 0,
+    y = 0,
+    look = false
+}) => {
 
-  var blockEast = _.find(map, {
-      'x': x + 16,
-      'y': y
-  });
-  var blockWest = _.find(map, {
-      'x': x - 16,
-      'y': y
-  });
-  var blockSouth = _.find(map, {
-      'x': x,
-      'y': y + 16
-  });
-  var blockNorth = _.find(map, {
-      'x': x,
-      'y': y - 16
-  });
+    var block = _.find(map, {
+        'x': x,
+        'y': y
+    });
+    var blockEast = _.find(map, {
+        'x': x + 16,
+        'y': y
+    });
+    var blockWest = _.find(map, {
+        'x': x - 16,
+        'y': y
+    });
+    var blockSouth = _.find(map, {
+        'x': x,
+        'y': y + 16
+    });
+    var blockNorth = _.find(map, {
+        'x': x,
+        'y': y - 16
+    });
 
-  var blockNorthWest = _.find(map, {
-      'x': x - 16,
-      'y': y - 16
-  });
+    var blockNorthWest = _.find(map, {
+        'x': x - 16,
+        'y': y - 16
+    });
 
-  var blockNorthEast = _.find(map, {
-      'x': x + 16,
-      'y': y - 16
-  });
+    var blockNorthEast = _.find(map, {
+        'x': x + 16,
+        'y': y - 16
+    });
 
-  var blockSouthWest = _.find(map, {
-      'x': x - 16,
-      'y': y + 16
-  });
+    var blockSouthWest = _.find(map, {
+        'x': x - 16,
+        'y': y + 16
+    });
 
-  var blockSouthEast = _.find(map, {
-      'x': x + 16,
-      'y': y + 16
-  });
+    var blockSouthEast = _.find(map, {
+        'x': x + 16,
+        'y': y + 16
+    });
 
-  if (blockNorth && blockNorth.type == "block") {
-      blockNorth.status = "refresh";
-  }
-  if (blockEast && blockEast.type == "block") {
-      blockEast.status = "refresh";
-  }
-  if (blockSouth && blockSouth.type == "block") {
-      blockSouth.status = "refresh";
-  }
-  if (blockWest && blockWest.type == "block") {
-      blockWest.status = "refresh";
-  }
 
-  if (blockNorthWest && blockNorthWest.type == "block") {
-      blockNorthWest.status = "refresh";
-  }
-  if (blockNorthEast && blockNorthEast.type == "block") {
-      blockNorthEast.status = "refresh";
-  }
-  if (blockSouthWest && blockSouthWest.type == "block") {
-      blockSouthWest.status = "refresh";
-  }
-  if (blockSouthEast && blockSouthEast.type == "block") {
-      blockSouthEast.status = "refresh";
-  }
+
+    if (look) {
+        return {
+            block: block,
+            blockNorth: blockNorth,
+            blockEast: blockEast,
+            blockSouth: blockSouth,
+            blockWest: blockWest,
+            blockNorthWest: blockNorthWest,
+            blockNorthEast: blockNorthEast,
+            blockSouthWest: blockSouthWest,
+            blockSouthEast: blockSouthEast
+        };
+    }
+
+    if (blockNorth && blockNorth.type == "block") {
+        blockNorth.status = "refresh";
+    }
+    if (blockEast && blockEast.type == "block") {
+        blockEast.status = "refresh";
+    }
+    if (blockSouth && blockSouth.type == "block") {
+        blockSouth.status = "refresh";
+    }
+    if (blockWest && blockWest.type == "block") {
+        blockWest.status = "refresh";
+    }
+
+    if (blockNorthWest && blockNorthWest.type == "block") {
+        blockNorthWest.status = "refresh";
+    }
+    if (blockNorthEast && blockNorthEast.type == "block") {
+        blockNorthEast.status = "refresh";
+    }
+    if (blockSouthWest && blockSouthWest.type == "block") {
+        blockSouthWest.status = "refresh";
+    }
+    if (blockSouthEast && blockSouthEast.type == "block") {
+        blockSouthEast.status = "refresh";
+    }
+
 
 }
 
 var tilesImage = utils.getImage('media/tiles.png');
 var animFlower = 0;
+
+var lastbackgroundMouse = {};
+
+const mouseAction = (params) => {
+
+    if (lastbackgroundMouse.x && lastbackgroundMouse.y && !_.isEqual(backgroundMouse, lastbackgroundMouse)) {
+
+        var lastdiffX = backgroundMouse.x - lastbackgroundMouse.x;
+        var lastdiffY = backgroundMouse.y - lastbackgroundMouse.y;
+
+        var nbMissX = Math.abs(lastdiffX / 16);
+        var nbMissY = Math.abs(lastdiffY / 16);
+
+        for (var x = 0; x <= nbMissX; x++) {
+            var newX = 0;
+            if (lastdiffX < 0) {
+                newX = lastbackgroundMouse.x - (x * 16);
+            } else {
+                newX = lastbackgroundMouse.x + (x * 16);
+            }
+            createBlock({
+                x: newX,
+                y: backgroundMouse.y
+            });
+        }
+
+        for (var y = 0; y <= nbMissY; y++) {
+            var newY = 0;
+            if (lastdiffY < 0) {
+                newY = lastbackgroundMouse.y - (y * 16);
+            } else {
+                newY = lastbackgroundMouse.y + (y * 16);
+            }
+            createBlock({
+                x: backgroundMouse.x,
+                y: newY
+            });
+
+        }
+
+    }
+    lastbackgroundMouse = backgroundMouse;
+    createBlock(backgroundMouse);
+}
+
+
 const display = (store) => {
     //reset();
 
-    if(!mousedown) {
-      return;
+    if (!mousedown) {
+        lastbackgroundMouse = {};
+        return;
     }
 
     if (backgroundMouse && mousedown) {
-        //console.log(backgroundMouse);
-        createBlock(backgroundMouse);
+        mouseAction();
     }
 
     context.imageSmoothingEnabled = false;
 
     var litenMap = _.filter(map, function(o) {
+
         return o.status != 'done';
     });
-    console.log(litenMap.length);
 
     _.each(litenMap, function(tile, tilesIndex) {
 
@@ -245,6 +322,7 @@ const display = (store) => {
 
         tile.status = "done";
         context.clearRect(0 + x, 0 + y, 16, 16);
+
         switch (tile.type) {
             case "block":
                 //context.fillStyle = "#d0c090";
@@ -319,150 +397,174 @@ const display = (store) => {
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SE"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "SE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "NW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 5, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
+                        shadow(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     context.fillStyle = "#705f30";
                     context.fillRect(0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
 
                 // no block
                 if (arryPresent.length == 0) {
-                    //  context.fillStyle = "#705f30";
-                    //  context.fillRect(0 + x, 0 + y, 16, 16);
                     context.drawImage(tilesImage.element, 16 * 3, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                    //context.drawImage(tilesImage.element, 16 * 6, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N", "W", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 2, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N", "W"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 3, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
 
                 if (_.isEqual(arryPresent.sort(), ["S", "W", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 2, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S", "W"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 3, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S", "N"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 6, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["W"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["W", "N", "S"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["E", "N", "S"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["W", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 7, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
+                    shadow(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 context.fillStyle = "#705f30";
                 context.fillRect(0 + x, 0 + y, 16, 16);
-
+                shadow(context, 0 + x, 0 + y, 16, 16);
 
                 break;
             case "bush":
@@ -492,87 +594,47 @@ const display = (store) => {
         }
     });
 
-
-
-    // var x = 0;
-    // _.each(map, function(tiles, tilesIndex) {
-    //     var y = 0;
-    //     _.each(tiles, function(tile, tileIndex) {
-    //         switch (tile.type) {
-    //             case "block":
-    //                 //context.fillStyle = "#d0c090";
-    //                 context.fillStyle = "#409740";
-    //                 context.fillRect(0 + x, 0 + y, 16, 16);
-    //
-    //                 if(x == 0) { // left
-    //
-    //                   if(y == 0) { // top
-    //                     context.drawImage(tilesImage.element, 16*6, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else if(y / 16 == _.size(map)-1) { // bottom
-    //                     context.drawImage(tilesImage.element, 16*6, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else {
-    //                     context.drawImage(tilesImage.element, 16*5, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   }
-    //
-    //                 } else if(x / 16 == _.size(map)-1) { // right
-    //                   if(y == 0) { // top
-    //                     context.drawImage(tilesImage.element, 16*7, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else if(y / 16 == _.size(map)-1){ // bottom
-    //                     context.drawImage(tilesImage.element, 16*7, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   } else {
-    //                     context.drawImage(tilesImage.element, 16*5, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                   }
-    //
-    //                 } else if(y == 0) { // top
-    //                   context.drawImage(tilesImage.element, 16*4, 16*3, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 } else if(y / 16 == _.size(map)-1) { // bottom
-    //                   context.drawImage(tilesImage.element, 16*4, 16*2, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 } else {
-    //                   context.fillStyle = "#807740";
-    //                   context.fillRect(0 + x, 0 + y, 16, 16);
-    //                   context.drawImage(tilesImage.element, 16*0, 16, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 }
-    //                 break;
-    //             case "bush":
-    //                 context.fillStyle = "#409740";
-    //                 context.fillRect(0 + x, 0 + y, 16, 16);
-    //                 context.drawImage(tilesImage.element, 16 * (1+tile.element) , 16*1, 16, 16, 0 + x, 0 + y, 16, 16);
-    //
-    //                 break;
-    //             case "grass":
-    //                 context.fillStyle = "#409740";
-    //                 context.fillRect(0 + x, 0 + y, 16, 16);
-    //                 if (tile.element == 1) {
-    //
-    //                     var tagetFlower = 0;
-    //                     if(animFlower > 0) {
-    //                       tagetFlower = (Math.floor(animFlower)*16);
-    //                     }
-    //
-    //                     context.drawImage(tilesImage.element, 16 * tile.element + tagetFlower, 0, 16, 16, 0 + x, 0 + y, 16, 16);
-    //
-    //                 } else if (tile.element){
-    //                     context.drawImage(tilesImage.element, 16 * tile.element, 0, 16, 16, 0 + x, 0 + y, 16, 16);
-    //                 }
-    //
-    //                 break;
-    //             default:
-    //         }
-    //         y += 16;
-    //     });
-    //     x += 16;
-    // });
-
     animFlower += 0.08;
     if (animFlower > 3) {
         animFlower = -1;
     }
 }
 
+const shadow = (context, x = 0, y = 0, width = 16, height = 16) => {
+    var contrast = 100;
+    var factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+    var imgData = context.getImageData(x, y, width, height);
+    var pixel = imgData.data;
+    // invert colors
+    var r = 0,
+        g = 1,
+        b = 2,
+        a = 3;
+    for (var p = 0; p < pixel.length; p += 4) {
+        if (pixel[p + r] == 255 &&
+            pixel[p + g] == 255 &&
+            pixel[p + b] == 255) {// if white then change alpha to 0
+            pixel[p + a] = 0;
+
+          }
+        // } else if (
+        //     pixel[p + r] == 32 &&
+        //     pixel[p + g] == 39 &&
+        //     pixel[p + b] == 32) {
+        //     pixel[p + a] = 255;
+        // }
+        else  {
+            pixel[p + g] = pixel[p + r] / 200 * 255;
+        }
+    }
+    context.putImageData(imgData, x, y);
+}
 module.exports = {
     reset: reset,
     init: init,
     initdraw: initdraw,
     calc: calc,
-    display: display
+    display: display,
+    getNear: getNear
 }

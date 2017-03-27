@@ -1,9 +1,14 @@
+@font-face {
+    font-family: zelda;
+    src: url("../media/triforce.ttf");
+}
+
 body, html {
   height: 100%;
   width:100%;
   padding:0;
   margin:0;
-  background: #5a84c6;
+  background: #fff;/*#5a84c6;*/
   image-rendering:optimizeSpeed;             /* Legal fallback */
   image-rendering:-moz-crisp-edges;          /* Firefox        */
   image-rendering:-o-crisp-edges;            /* Opera          */
@@ -13,6 +18,7 @@ body, html {
   image-rendering:pixelated;                 /* CSS4 Proposed  */
   -ms-interpolation-mode:nearest-neighbor;   /* IE8+           */
   cursor:crosshair;
+  font-family: zelda;
 }
 canvas {
   position :absolute;
