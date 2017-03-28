@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 62);
+/******/ 	return __webpack_require__(__webpack_require__.s = 63);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -98,9 +98,9 @@ module.exports = g;
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {Object.defineProperty(exports, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createStore__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__combineReducers__ = __webpack_require__(57);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__bindActionCreators__ = __webpack_require__(56);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__applyMiddleware__ = __webpack_require__(55);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__combineReducers__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__bindActionCreators__ = __webpack_require__(57);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__applyMiddleware__ = __webpack_require__(56);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__compose__ = __webpack_require__(17);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__utils_warning__ = __webpack_require__(19);
 /* harmony reexport (binding) */ __webpack_require__.d(exports, "createStore", function() { return __WEBPACK_IMPORTED_MODULE_0__createStore__["a"]; });
@@ -126,10 +126,47 @@ if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' 
 }
 
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ },
 /* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var getImage = function getImage(name) {
+
+    if (window.library === undefined) {
+        window.library = [];
+    }
+
+    if (window.library && window.library[name]) {
+        return window.library[name];
+    } else {
+
+        var img1 = new Image();
+
+        window.library[name] = {
+            element: img1
+        };
+
+        img1.onload = function () {
+            window.library[name].status = "loaded";
+        };
+
+        img1.src = name;
+
+        return window.library[name];
+    }
+};
+
+module.exports = {
+    getImage: getImage
+};
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -139,7 +176,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _objectInspect = __webpack_require__(53);
+var _objectInspect = __webpack_require__(54);
 
 var _objectInspect2 = _interopRequireDefault(_objectInspect);
 
@@ -167,7 +204,7 @@ var assert = function assert(condition, createMessage) {
 exports.default = assert;
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports) {
 
 // shim for using process in browser
@@ -353,13 +390,13 @@ process.umask = function() { return 0; };
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(_) {
 
-var _utils = __webpack_require__(6);
+var _utils = __webpack_require__(2);
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -657,7 +694,7 @@ var display = function display(store) {
 
     if (!mousedown) {
         lastbackgroundMouse = {};
-        return;
+        //return;
     }
 
     if (backgroundMouse && mousedown) {
@@ -667,7 +704,6 @@ var display = function display(store) {
     context.imageSmoothingEnabled = false;
 
     var litenMap = _.filter(map, function (o) {
-
         return o.status != 'done';
     });
 
@@ -676,13 +712,12 @@ var display = function display(store) {
         var x = tile.x;
         var y = tile.y;
 
-        tile.status = "done";
         context.clearRect(0 + x, 0 + y, 16, 16);
 
         switch (tile.type) {
             case "block":
                 //context.fillStyle = "#d0c090";
-
+                tile.status = "done";
                 var blockEast = _.find(map, {
                     'x': x + 16,
                     'y': y
@@ -721,211 +756,228 @@ var display = function display(store) {
                 });
 
                 var arryPresent = [];
-                if (blockNorth && blockNorth.type == "block") {
+                if (blockNorth && blockNorth.type) {
                     arryPresent.push("N");
                 }
-                if (blockEast && blockEast.type == "block") {
+                if (blockEast && blockEast.type) {
                     arryPresent.push("E");
                 }
-                if (blockSouth && blockSouth.type == "block") {
+                if (blockSouth && blockSouth.type) {
                     arryPresent.push("S");
                 }
-                if (blockWest && blockWest.type == "block") {
+                if (blockWest && blockWest.type) {
                     arryPresent.push("W");
                 }
 
                 // all block
                 if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W"].sort())) {
 
-                    if (blockNorthWest && blockNorthWest.type == "block") {
+                    if (blockNorthWest && blockNorthWest.type) {
                         arryPresent.push("NW");
                     }
-                    if (blockNorthEast && blockNorthEast.type == "block") {
+                    if (blockNorthEast && blockNorthEast.type) {
                         arryPresent.push("NE");
                     }
-                    if (blockSouthWest && blockSouthWest.type == "block") {
+                    if (blockSouthWest && blockSouthWest.type) {
                         arryPresent.push("SW");
                     }
-                    if (blockSouthEast && blockSouthEast.type == "block") {
+                    if (blockSouthEast && blockSouthEast.type) {
                         arryPresent.push("SE");
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SE"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "NE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "SE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "NW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SE"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NE", "SW"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 7, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W", "NW", "SE"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 6, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     if (_.isEqual(arryPresent.sort(), ["N", "E", "S", "W"].sort())) {
                         context.drawImage(tilesImage.element, 16 * 5, 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-                        shadow(context, 0 + x, 0 + y, 16, 16);
+                        modify(context, 0 + x, 0 + y, 16, 16);
                         return;
                     }
 
                     context.fillStyle = "#705f30";
                     context.fillRect(0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+
+                    modify(context, 0 + x, 0 + y, 16, 16);
+
+                    if (!tile.block && Math.random() < 0.2) {
+                        if (Math.random() < 0.3) {
+                            tile.type = 'bush';
+                            tile.status = "update";
+                            tile.element = 0;
+                            tile.block = true;
+                        } else {
+                            tile.type = 'grass';
+                            tile.status = "update";
+                            tile.element = 1;
+                        }
+                    } else {
+                        tile.block = true;
+                    }
+
                     return;
                 }
 
                 // no block
                 if (arryPresent.length == 0) {
                     context.drawImage(tilesImage.element, 16 * 3, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N", "W", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 2, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["N", "W"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 3, 16 * 5, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 7, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S", "W", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 2, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S", "W"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 3, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["S", "N"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 6, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["W"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 4, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["W", "N", "S"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 2, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["E", "N", "S"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 3, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 5, 16 * 6, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 if (_.isEqual(arryPresent.sort(), ["W", "E"].sort())) {
                     context.drawImage(tilesImage.element, 16 * 7, 16 * 4, 16, 16, 0 + x, 0 + y, 16, 16);
-                    shadow(context, 0 + x, 0 + y, 16, 16);
+                    modify(context, 0 + x, 0 + y, 16, 16);
                     return;
                 }
 
                 context.fillStyle = "#705f30";
                 context.fillRect(0 + x, 0 + y, 16, 16);
-                shadow(context, 0 + x, 0 + y, 16, 16);
+                modify(context, 0 + x, 0 + y, 16, 16);
 
                 break;
             case "bush":
-                context.fillStyle = "#409740";
+                context.fillStyle = "#705f30";
                 context.fillRect(0 + x, 0 + y, 16, 16);
                 context.drawImage(tilesImage.element, 16 * (1 + tile.element), 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-
+                modify(context, 0 + x, 0 + y, 16, 16);
                 break;
             case "grass":
-                context.fillStyle = "#409740";
+                context.fillStyle = "#705f30";
                 context.fillRect(0 + x, 0 + y, 16, 16);
                 if (tile.element == 1) {
 
@@ -938,7 +990,7 @@ var display = function display(store) {
                 } else if (tile.element) {
                     context.drawImage(tilesImage.element, 16 * tile.element, 0, 16, 16, 0 + x, 0 + y, 16, 16);
                 }
-
+                modify(context, 0 + x, 0 + y, 16, 16);
                 break;
             default:
         }
@@ -949,17 +1001,45 @@ var display = function display(store) {
         animFlower = -1;
     }
 };
-
-var shadow = function shadow(context) {
-    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var width = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 16;
-    var height = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 16;
-
+var modify = function modify(context, x, y) {
     var contrast = 100;
     var factor = 259 * (contrast + 255) / (255 * (259 - contrast));
 
-    var imgData = context.getImageData(x, y, width, height);
+    var imgData = context.getImageData(x, y, 32, 32);
+
+    // green
+
+    var darkgreen = { r: 67, g: 121, b: 13 }; // rgba(67,121,13,1)
+    var midgreen = { r: 80, g: 144, b: 16 }; // rgba(80,144,16,1)
+    var lightgreen = { r: 120, g: 184, b: 32 }; // rgba(120,184,32,1)
+
+    imgData = change(imgData, { r: 64, g: 55, b: 32 }, darkgreen); // rgba(64,55,32,1)
+    imgData = change(imgData, { r: 95, g: 71, b: 32 }, midgreen); // rgba(95,71,32,1)
+    imgData = change(imgData, { r: 112, g: 95, b: 48 }, lightgreen); // rgba(112,95,48,1)
+
+    // blue
+    var darkblue = { r: 38, g: 97, b: 167 }; // rgba(38,97,167,1)
+    var midblue = { r: 84, g: 137, b: 225 }; // rgba(84,137,225,1)
+    var lightblue = { r: 54, g: 177, b: 236 }; // rgba(54,177,236,1)
+
+    // imgData = change(imgData, {r : 64,g : 55,b: 32}, darkblue);  // rgba(64,55,32,1)
+    // imgData = change(imgData, {r : 95,g : 71,b: 32}, midblue); // rgba(95,71,32,1)
+    // imgData = change(imgData, {r : 112,g : 95,b: 48}, lightblue); // rgba(112,95,48,1)
+
+    // red
+    var darkred = { r: 119, g: 30, b: 42 }; // rgba(116,30,42,1)
+    var midred = { r: 187, g: 4, b: 38 }; // rgba(187,4,38,1)
+    var lightred = { r: 245, g: 88, b: 140 }; // rgba(245,88,140,1)
+
+    imgData = change(imgData, { r: 64, g: 55, b: 32 }, darkred); // rgba(64,55,32,1)
+    imgData = change(imgData, { r: 95, g: 71, b: 32 }, midred); // rgba(95,71,32,1)
+    imgData = change(imgData, { r: 112, g: 95, b: 48 }, lightred); // rgba(112,95,48,1)
+
+
+    context.putImageData(imgData, x, y);
+};
+
+var change = function change(imgData, startRGB, endRGB) {
     var pixel = imgData.data;
     // invert colors
     var r = 0,
@@ -967,22 +1047,18 @@ var shadow = function shadow(context) {
         b = 2,
         a = 3;
     for (var p = 0; p < pixel.length; p += 4) {
-        if (pixel[p + r] == 255 && pixel[p + g] == 255 && pixel[p + b] == 255) {
-            // if white then change alpha to 0
-            pixel[p + a] = 0;
+
+        if (pixel[p + a] != 0 && // expect transparency
+        pixel[p + r] == startRGB.r && pixel[p + g] == startRGB.g && pixel[p + b] == startRGB.b) {
+            // black alpha 1
+            pixel[p + r] = endRGB.r;
+            pixel[p + g] = endRGB.g;
+            pixel[p + b] = endRGB.b;
         }
-        // } else if (
-        //     pixel[p + r] == 32 &&
-        //     pixel[p + g] == 39 &&
-        //     pixel[p + b] == 32) {
-        //     pixel[p + a] = 255;
-        // }
-        else {
-                pixel[p + g] = pixel[p + r] / 200 * 255;
-            }
     }
-    context.putImageData(imgData, x, y);
+    return imgData;
 };
+
 module.exports = {
     reset: reset,
     init: init,
@@ -991,10 +1067,10 @@ module.exports = {
     display: display,
     getNear: getNear
 };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27)))
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1004,15 +1080,15 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _redux = __webpack_require__(1);
 
-var _canvas_debug = __webpack_require__(63);
+var _canvas_debug = __webpack_require__(26);
 
 var _canvas_debug2 = _interopRequireDefault(_canvas_debug);
 
-var _canvas_background = __webpack_require__(4);
+var _canvas_background = __webpack_require__(5);
 
 var _canvas_background2 = _interopRequireDefault(_canvas_background);
 
-var _utils = __webpack_require__(6);
+var _utils = __webpack_require__(2);
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -1051,10 +1127,9 @@ var movement = function movement() {
         default:
     }
 
-    console.log(state);
     var anti = anticipation(action.type, state);
 
-    if (anti && anti.near && !anti.near.block) {
+    if (anti && anti.near && (!anti.near.block || anti.near.block.type == 'bush')) {
         return startState;
     }
 
@@ -1214,16 +1289,43 @@ var draw = function draw(context, target) {
         context.drawImage(head.element, targetanimationposHead, pos, 32, 32, target.position.x, target.position.y, 32, 32);
     }
 
-    shadow(context, target.position.x, target.position.y);
+    modify(context, target.position.x, target.position.y);
 
     return context;
 };
 
-var shadow = function shadow(context, x, y) {
+var modify = function modify(context, x, y) {
     var contrast = 100;
     var factor = 259 * (contrast + 255) / (255 * (259 - contrast));
 
     var imgData = context.getImageData(x, y, 32, 32);
+    //imgData = fufu(imgData);
+
+    imgData = change(imgData, { r: 236, g: 96, b: 180 }, { r: 234, g: 192, b: 67 }); // air rgba(236,96,180,1) rgba(234,192,67,1)
+    imgData = change(imgData, { r: 255, g: 120, b: 0 }, { r: 234, g: 192, b: 67 }); // air rgba(255,120,0,1) rgba(234,192,67,1)
+
+    // blue
+
+    var darkblue = { r: 38, g: 97, b: 167 }; // rgba(38,97,167,1)
+    var lightblue = { r: 54, g: 177, b: 236 }; // rgba(54,177,236,1)
+    //
+    // imgData = change(imgData, {r : 80,g : 144,b: 16}, darkblue); // rgba(80,144,16,1)
+    // imgData = change(imgData, {r : 140,g : 88,b: 40}, darkblue); // rgba(140,88,40,1)
+    // imgData = change(imgData, {r : 120,g : 184,b: 32}, lightblue); // rgba(120,184,32,1)
+
+    // red
+    var darkred = { r: 187, g: 4, b: 38 }; // rgba(187,4,38,1)
+    var lightred = { r: 245, g: 88, b: 140 }; // rgba(245,88,140,1)
+
+    imgData = change(imgData, { r: 80, g: 144, b: 16 }, darkred); // rgba(80,144,16,1)
+    imgData = change(imgData, { r: 140, g: 88, b: 40 }, darkred); // rgba(140,88,40,1)
+    imgData = change(imgData, { r: 120, g: 184, b: 32 }, lightred); // rgba(120,184,32,1)
+
+
+    context.putImageData(imgData, x, y);
+};
+
+var fufu = function fufu(imgData) {
     var pixel = imgData.data;
     // invert colors
     var r = 0,
@@ -1231,20 +1333,37 @@ var shadow = function shadow(context, x, y) {
         b = 2,
         a = 3;
     for (var p = 0; p < pixel.length; p += 4) {
-
-        if (pixel[p + r] == 255 && pixel[p + g] == 255 && pixel[p + b] == 255) // if white then change alpha to 0
-            {
-                //pixel[p+a] = 0;
-            } else if (pixel[p + r] == 40 && pixel[p + g] == 40 && pixel[p + b] == 40) {
+        if (pixel[p + r] == 40 && pixel[p + g] == 40 && pixel[p + b] == 40) {
+            // black alpha 1
             pixel[p + a] = 255;
         } else if (pixel[p + a] != 0) {
+            // all expect transparency go to white
             pixel[p + r] = 255;
             pixel[p + g] = 255;
             pixel[p + b] = 255;
             pixel[p + a] = 200;
         }
     }
-    context.putImageData(imgData, x, y);
+    return imgData;
+};
+
+var change = function change(imgData, startRGB, endRGB) {
+    var pixel = imgData.data;
+    // invert colors
+    var r = 0,
+        g = 1,
+        b = 2,
+        a = 3;
+    for (var p = 0; p < pixel.length; p += 4) {
+        if (pixel[p + a] != 0 && // expect transparency
+        pixel[p + r] == startRGB.r && pixel[p + g] == startRGB.g && pixel[p + b] == startRGB.b) {
+            // black alpha 1
+            pixel[p + r] = endRGB.r;
+            pixel[p + g] = endRGB.g;
+            pixel[p + b] = endRGB.b;
+        }
+    }
+    return imgData;
 };
 
 var events = (0, _redux.combineReducers)({
@@ -1256,43 +1375,6 @@ var events = (0, _redux.combineReducers)({
 module.exports = {
     events: events,
     draw: draw
-};
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var getImage = function getImage(name) {
-
-    if (window.library === undefined) {
-        window.library = [];
-    }
-
-    if (window.library && window.library[name]) {
-        return window.library[name];
-    } else {
-
-        var img1 = new Image();
-
-        window.library[name] = {
-            element: img1
-        };
-
-        img1.onload = function () {
-            window.library[name].status = "loaded";
-        };
-
-        img1.src = name;
-
-        return window.library[name];
-    }
-};
-
-module.exports = {
-    getImage: getImage
 };
 
 /***/ },
@@ -1314,11 +1396,11 @@ var _has = __webpack_require__(10);
 
 var _has2 = _interopRequireDefault(_has);
 
-var _tmatch = __webpack_require__(61);
+var _tmatch = __webpack_require__(62);
 
 var _tmatch2 = _interopRequireDefault(_tmatch);
 
-var _assert = __webpack_require__(2);
+var _assert = __webpack_require__(3);
 
 var _assert2 = _interopRequireDefault(_assert);
 
@@ -1723,9 +1805,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.spyOn = exports.createSpy = exports.restoreSpies = exports.isSpy = undefined;
 
-var _defineProperties = __webpack_require__(29);
+var _defineProperties = __webpack_require__(30);
 
-var _assert = __webpack_require__(2);
+var _assert = __webpack_require__(3);
 
 var _assert2 = _interopRequireDefault(_assert);
 
@@ -1856,7 +1938,7 @@ var _isRegex = __webpack_require__(12);
 
 var _isRegex2 = _interopRequireDefault(_isRegex);
 
-var _why = __webpack_require__(40);
+var _why = __webpack_require__(41);
 
 var _why2 = _interopRequireDefault(_why);
 
@@ -1994,7 +2076,7 @@ var stringContains = exports.stringContains = function stringContains(string, va
 /* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-var bind = __webpack_require__(33);
+var bind = __webpack_require__(34);
 
 module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
 
@@ -2110,7 +2192,7 @@ if (hasSymbols) {
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__root_js__ = __webpack_require__(51);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__root_js__ = __webpack_require__(52);
 
 
 /** Built-in value references. */
@@ -2124,9 +2206,9 @@ var Symbol = __WEBPACK_IMPORTED_MODULE_0__root_js__["a" /* default */].Symbol;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__baseGetTag_js__ = __webpack_require__(45);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__getPrototype_js__ = __webpack_require__(47);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__isObjectLike_js__ = __webpack_require__(52);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__baseGetTag_js__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__getPrototype_js__ = __webpack_require__(48);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__isObjectLike_js__ = __webpack_require__(53);
 
 
 
@@ -2202,7 +2284,7 @@ function isPlainObject(value) {
 var has = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var slice = Array.prototype.slice;
-var isArgs = __webpack_require__(54);
+var isArgs = __webpack_require__(55);
 var isEnumerable = Object.prototype.propertyIsEnumerable;
 var hasDontEnumBug = !isEnumerable.call({ toString: null }, 'toString');
 var hasProtoEnumBug = isEnumerable.call(function () {}, 'prototype');
@@ -2385,7 +2467,7 @@ function compose() {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable__ = __webpack_require__(59);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_symbol_observable__);
 /* harmony export (binding) */ __webpack_require__.d(exports, "b", function() { return ActionTypes; });
 /* harmony export (immutable) */ exports["a"] = createStore;
@@ -2707,7 +2789,7 @@ module.exports = function(module) {
 "use strict";
 
 
-var _player = __webpack_require__(5);
+var _player = __webpack_require__(6);
 
 var _player2 = _interopRequireDefault(_player);
 
@@ -2902,11 +2984,11 @@ var _Expectation2 = _interopRequireDefault(_Expectation);
 
 var _SpyUtils = __webpack_require__(8);
 
-var _assert = __webpack_require__(2);
+var _assert = __webpack_require__(3);
 
 var _assert2 = _interopRequireDefault(_assert);
 
-var _extend = __webpack_require__(30);
+var _extend = __webpack_require__(31);
 
 var _extend2 = _interopRequireDefault(_extend);
 
@@ -2927,6 +3009,38 @@ module.exports = expect;
 
 /***/ },
 /* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _utils = __webpack_require__(2);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var debug = document.getElementById("debug");
+var debugContext = debug.getContext("2d");
+
+var calc = function calc() {
+  var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+
+  var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+  debug.width = width;
+  debug.height = height;
+};
+
+calc();
+
+module.exports = {
+  debug: debug,
+  debugContext: debugContext
+};
+
+/***/ },
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6729,7 +6843,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(21)(module)))
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6850,7 +6964,7 @@ function fromByteArray (uint8) {
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6864,9 +6978,9 @@ function fromByteArray (uint8) {
 
 
 
-var base64 = __webpack_require__(27)
-var ieee754 = __webpack_require__(34)
-var isArray = __webpack_require__(44)
+var base64 = __webpack_require__(28)
+var ieee754 = __webpack_require__(35)
+var isArray = __webpack_require__(45)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -8647,14 +8761,14 @@ function isnan (val) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var keys = __webpack_require__(16);
-var foreach = __webpack_require__(31);
+var foreach = __webpack_require__(32);
 var hasSymbols = typeof Symbol === 'function' && typeof Symbol() === 'symbol';
 
 var toStr = Object.prototype.toString;
@@ -8710,7 +8824,7 @@ module.exports = defineProperties;
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8741,7 +8855,7 @@ function extend(extension) {
 exports.default = extend;
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports) {
 
 
@@ -8769,7 +8883,7 @@ module.exports = function forEach (obj, fn, ctx) {
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports) {
 
 var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
@@ -8823,16 +8937,16 @@ module.exports = function bind(that) {
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
-var implementation = __webpack_require__(32);
+var implementation = __webpack_require__(33);
 
 module.exports = Function.prototype.bind || implementation;
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -8922,7 +9036,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8944,7 +9058,7 @@ module.exports = function isArrowFunction(fn) {
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8972,7 +9086,7 @@ module.exports = function isBoolean(value) {
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8999,7 +9113,7 @@ module.exports = function isDateObject(value) {
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9031,7 +9145,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9055,7 +9169,7 @@ module.exports = function getSymbolIterator() {
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9065,13 +9179,13 @@ var ObjectPrototype = Object.prototype;
 var toStr = ObjectPrototype.toString;
 var booleanValue = Boolean.prototype.valueOf;
 var has = __webpack_require__(10);
-var isArrowFunction = __webpack_require__(35);
-var isBoolean = __webpack_require__(36);
-var isDate = __webpack_require__(37);
-var isGenerator = __webpack_require__(41);
-var isNumber = __webpack_require__(42);
+var isArrowFunction = __webpack_require__(36);
+var isBoolean = __webpack_require__(37);
+var isDate = __webpack_require__(38);
+var isGenerator = __webpack_require__(42);
+var isNumber = __webpack_require__(43);
 var isRegex = __webpack_require__(12);
-var isString = __webpack_require__(43);
+var isString = __webpack_require__(44);
 var isSymbol = __webpack_require__(13);
 var isCallable = __webpack_require__(11);
 
@@ -9081,9 +9195,9 @@ var foo = function foo() {};
 var functionsHaveNames = foo.name === 'foo';
 
 var symbolValue = typeof Symbol === 'function' ? Symbol.prototype.valueOf : null;
-var symbolIterator = __webpack_require__(39)();
+var symbolIterator = __webpack_require__(40)();
 
-var collectionsForEach = __webpack_require__(38)();
+var collectionsForEach = __webpack_require__(39)();
 
 var getPrototypeOf = Object.getPrototypeOf;
 if (!getPrototypeOf) {
@@ -9356,7 +9470,7 @@ module.exports = function whyNotEqual(value, other) {
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9395,7 +9509,7 @@ module.exports = function isGeneratorFunction(fn) {
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9422,7 +9536,7 @@ module.exports = function isNumberObject(value) {
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9449,7 +9563,7 @@ module.exports = function isString(value) {
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports) {
 
 var toString = {}.toString;
@@ -9460,13 +9574,13 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Symbol_js__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__getRawTag_js__ = __webpack_require__(48);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__objectToString_js__ = __webpack_require__(49);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__getRawTag_js__ = __webpack_require__(49);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__objectToString_js__ = __webpack_require__(50);
 
 
 
@@ -9498,7 +9612,7 @@ function baseGetTag(value) {
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9510,11 +9624,11 @@ var freeGlobal = typeof global == 'object' && global && global.Object === Object
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__overArg_js__ = __webpack_require__(50);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__overArg_js__ = __webpack_require__(51);
 
 
 /** Built-in value references. */
@@ -9524,7 +9638,7 @@ var getPrototype = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__overArg_js
 
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9578,7 +9692,7 @@ function getRawTag(value) {
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9607,7 +9721,7 @@ function objectToString(value) {
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9629,11 +9743,11 @@ function overArg(func, transform) {
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__freeGlobal_js__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__freeGlobal_js__ = __webpack_require__(47);
 
 
 /** Detect free variable `self`. */
@@ -9646,7 +9760,7 @@ var root = __WEBPACK_IMPORTED_MODULE_0__freeGlobal_js__["a" /* default */] || fr
 
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9682,7 +9796,7 @@ function isObjectLike(value) {
 
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports) {
 
 var hasMap = typeof Map === 'function' && Map.prototype;
@@ -9895,7 +10009,7 @@ function inspectString (str) {
 
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9919,7 +10033,7 @@ module.exports = function isArguments(value) {
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9975,7 +10089,7 @@ function applyMiddleware() {
 }
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10029,7 +10143,7 @@ function bindActionCreators(actionCreators, dispatch) {
 }
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10166,17 +10280,17 @@ function combineReducers(reducers) {
     return hasChanged ? nextState : state;
   };
 }
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
-
-/***/ },
-/* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(59);
-
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ },
 /* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(60);
+
+
+/***/ },
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10186,7 +10300,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _ponyfill = __webpack_require__(60);
+var _ponyfill = __webpack_require__(61);
 
 var _ponyfill2 = _interopRequireDefault(_ponyfill);
 
@@ -10212,7 +10326,7 @@ exports['default'] = result;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(21)(module)))
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10241,7 +10355,7 @@ function symbolObservablePonyfill(root) {
 };
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10400,10 +10514,10 @@ function match_ (obj, pattern, ca, cb) {
   throw new Error('impossible to reach this point')
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(28).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(29).Buffer))
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10423,11 +10537,11 @@ var _canvas_main = __webpack_require__(22);
 
 var _canvas_main2 = _interopRequireDefault(_canvas_main);
 
-var _canvas_background = __webpack_require__(4);
+var _canvas_background = __webpack_require__(5);
 
 var _canvas_background2 = _interopRequireDefault(_canvas_background);
 
-var _player = __webpack_require__(5);
+var _player = __webpack_require__(6);
 
 var _player2 = _interopRequireDefault(_player);
 
@@ -10596,38 +10710,6 @@ document.onkeyup = function (e) {
 // testcounter();
 // testaction();
 // console.log("all tests passed.");
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _utils = __webpack_require__(6);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var debug = document.getElementById("debug");
-var debugContext = debug.getContext("2d");
-
-var calc = function calc() {
-  var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-
-  var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-
-  debug.width = width;
-  debug.height = height;
-};
-
-calc();
-
-module.exports = {
-  debug: debug,
-  debugContext: debugContext
-};
 
 /***/ }
 /******/ ]);
