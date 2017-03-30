@@ -56,12 +56,11 @@ const createBlock = (datas) => {
         'y': datas.y
     });
 
-    getNear({
-        x: datas.x,
-        y: datas.y
-    });
-
     if (!block) {
+      getNear({
+          x: datas.x,
+          y: datas.y
+      });
         map.push({
             x: datas.x,
             y: datas.y,
@@ -71,6 +70,28 @@ const createBlock = (datas) => {
     }
 
 }
+
+const createBlocks = (datas) => {
+
+  var multiX = 4;
+  var multiY = 4;
+
+  var data = {
+    x : datas.x-(16*((multiX)/2)),
+    y : datas.y-(16*((multiY)/2))
+  };
+
+  for(var nbX = 0; nbX < multiX; nbX++) {
+    for(var nbY = 0; nbY < multiY; nbY++) {
+      createBlock({
+        x : data.x+(nbX*16),
+        y : data.y+(nbY*16)
+      });
+    }
+  }
+
+}
+
 
 const reset = () => {
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -203,8 +224,6 @@ var getNear = ({
         'y': y + 16
     });
 
-
-
     if (look) {
         return {
             block: block,
@@ -270,7 +289,7 @@ const mouseAction = (params) => {
             } else {
                 newX = lastbackgroundMouse.x + (x * 16);
             }
-            createBlock({
+            createBlocks({
                 x: newX,
                 y: backgroundMouse.y
             });
@@ -283,7 +302,7 @@ const mouseAction = (params) => {
             } else {
                 newY = lastbackgroundMouse.y + (y * 16);
             }
-            createBlock({
+            createBlocks({
                 x: backgroundMouse.x,
                 y: newY
             });
@@ -292,7 +311,7 @@ const mouseAction = (params) => {
 
     }
     lastbackgroundMouse = backgroundMouse;
-    createBlock(backgroundMouse);
+    createBlocks(backgroundMouse);
 }
 
 
@@ -318,7 +337,6 @@ const display = (store) => {
 
         var x = tile.x;
         var y = tile.y;
-
 
         context.clearRect(0 + x, 0 + y, 16, 16);
 
@@ -467,20 +485,32 @@ const display = (store) => {
 
                     modify(context, 0 + x, 0 + y, 16, 16);
 
-                    if(!tile.block && Math.random() < 0.2) {
-                      if(Math.random() < 0.3) {
+                    if(!tile.lock && Math.random() <= 0.1) {
+                      var randomGrass = Math.random();
+                      if (randomGrass >= 0.9) {
+                        tile.type = 'grass';
+                        tile.status = "update";
+                        tile.solid = false;
+                        tile.element = 6;
+                      } else if (randomGrass >= 0.8) {
+                        tile.type = 'grass';
+                        tile.status = "update";
+                        tile.solid = false;
+                        tile.element = 4;
+                      } else if (randomGrass > 0.6) {
                         tile.type = 'bush';
                         tile.status = "update";
                         tile.element = 0;
-                        tile.block = true;
+                        tile.solid = true;
+                        tile.lock = true;
                       } else {
                         tile.type = 'grass';
                         tile.status = "update";
+                        tile.solid = false;
                         tile.element = 1;
                       }
-
                     } else {
-                      tile.block = true;
+                      tile.lock = true;
                     }
 
                     return;
@@ -584,16 +614,33 @@ const display = (store) => {
                 modify(context, 0 + x, 0 + y, 16, 16);
 
                 break;
+            case "desert":
+                context.fillStyle = "#705f30";
+                context.fillRect(0 + x, 0 + y, 16, 16);
+                context.drawImage(tilesImage.element, 16 * 1, 16 * 8, 16, 16, 0 + x, 0 + y, 16, 16);
+                modify(context, 0 + x, 0 + y, 16, 16);
+                break;
+            case "lava":
+                context.fillStyle = "#705f30";
+                context.fillRect(0 + x, 0 + y, 16, 16);
+                context.drawImage(tilesImage.element, 16 * 0, 16 * 8, 16, 16, 0 + x, 0 + y, 16, 16);
+                modify(context, 0 + x, 0 + y, 16, 16);
+                break;
             case "bush":
+                tile.status = "done";
                 context.fillStyle = "#705f30";
                 context.fillRect(0 + x, 0 + y, 16, 16);
                 context.drawImage(tilesImage.element, 16 * (1 + tile.element), 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
-                            modify(context, 0 + x, 0 + y, 16, 16);
+                modify(context, 0 + x, 0 + y, 16, 16);
                 break;
             case "grass":
-                context.fillStyle = "#705f30";
-                context.fillRect(0 + x, 0 + y, 16, 16);
-                if (tile.element == 1) {
+              context.fillStyle = "#705f30";
+              context.fillRect(0 + x, 0 + y, 16, 16);
+
+                if(tile.effect) {
+                    tile.type = 'block';
+                    tile.lock = 'true';
+                } else if (tile.element == 1) {
 
                     var tagetFlower = 0;
                     if (animFlower > 0) {
@@ -601,11 +648,13 @@ const display = (store) => {
                     }
 
                     context.drawImage(tilesImage.element, 16 * tile.element + tagetFlower, 0, 16, 16, 0 + x, 0 + y, 16, 16);
-
                 } else if (tile.element) {
+                    tile.status = "done";
                     context.drawImage(tilesImage.element, 16 * tile.element, 0, 16, 16, 0 + x, 0 + y, 16, 16);
                 }
-                            modify(context, 0 + x, 0 + y, 16, 16);
+
+
+                modify(context, 0 + x, 0 + y, 16, 16);
                 break;
             default:
         }
@@ -616,40 +665,62 @@ const display = (store) => {
         animFlower = -1;
     }
 }
-const modify = (context, x, y) => {
+const modify = (context, x, y, width, height, effect = "forest") => {
+
     var contrast = 100;
     var factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
 
-    var imgData = context.getImageData(x, y, 32, 32);
+    var imgData = context.getImageData(x, y, width, height);
 
-    // green
+    var dark = {r:0,g:0,b:0}; // rgba(0,0,0,1)
+    var mid = {r:0,g:0,b:0}; // rgba(0,0,0,1)
+    var light = {r:0,g:0,b:0}; // rgba(0,0,0,1)
+    var lighter = {r:0,g:0,b:0}; // rgba(0,0,0,1)
 
-    var darkgreen = {r:67,g:121,b:13}; // rgba(67,121,13,1)
-    var midgreen = {r:80,g:144,b:16}; // rgba(80,144,16,1)
-    var lightgreen = {r:120,g:184,b:32}; // rgba(120,184,32,1)
+    switch (effect) {
+      case "forest":// green
+          dark = {r:40,g:104,b:64}; // rgba(40,104,64,1)
+          mid = {r:64,g:120,b:64}; // rgba(64,120,64,1)
+          light = {r:72,g:152,b:72}; // rgba(72,152,72,1)
+          lighter = {r:176,g:232,b:184}; // rgba(176,232,184,1)
+        break;
+        case "ice":// blue
+            dark = {r:38,g:97,b:167}; // rgba(38,97,167,1)
+            mid = {r:84,g:137,b:225}; // rgba(84,137,225,1)
+            light = {r:54,g:177,b:236}; // rgba(54,177,236,1)
+            lighter = {r:129,g:202,b:236}; // rgba(129,202,236,1)
+        break;
+        case "desert":// yellow
+            dark = {r:72,g:56,b:40}; // rgba(72,56,40,1)
+            mid = {r:96,g:72,b:40}; // rgba(96,72,40,1)
+            light = {r:144,g:128,b:72}; // rgba(144,128,72,1)
+            lighter = {r:186,g:188,b:138}; // rgba(186,188,138,1)
+        break;
+        case "lava":// red
+            dark = {r:144,g:24,b:24}; // rgba(144,24,24,1)
+            mid = {r:224,g:32,b:32}; // rgba(224,32,32,1)
+            light = {r:248,g:120,b:32}; // rgba(248,120,32,1)
+            lighter = {r:247,g:165,b:110}; // rgba(247,165,110,1)
+        break;
+        case "grey":// grey
 
-    imgData = change(imgData, {r : 64,g : 55,b: 32}, darkgreen); // rgba(64,55,32,1)
-    imgData = change(imgData, {r : 95,g : 71,b: 32}, midgreen); // rgba(95,71,32,1)
-    imgData = change(imgData, {r : 112,g : 95,b: 48}, lightgreen); // rgba(112,95,48,1)
+              dark = {r:54,g:54,b:54}; // rgba(36,36,36,1)
+              mid = {r:73,g:73,b:73}; // rgba(73,73,73,1)
+              light = {r:93,g:93,b:93}; // rgba(93,93,93,1)
+              lighter = {r:150,g:150,b:150}; // rgba(150,150,150,1)
+              break;
 
-    // blue
-    var darkblue = {r:38,g:97,b:167}; // rgba(38,97,167,1)
-    var midblue = {r:84,g:137,b:225}; // rgba(84,137,225,1)
-    var lightblue = {r:54,g:177,b:236}; // rgba(54,177,236,1)
+      default:
+    }
 
-    // imgData = change(imgData, {r : 64,g : 55,b: 32}, darkblue);  // rgba(64,55,32,1)
-    // imgData = change(imgData, {r : 95,g : 71,b: 32}, midblue); // rgba(95,71,32,1)
-    // imgData = change(imgData, {r : 112,g : 95,b: 48}, lightblue); // rgba(112,95,48,1)
+    imgData = change(imgData, {r : 64,g : 55,b: 32}, dark); // rgba(64,55,32,1)
+    imgData = change(imgData, {r : 95,g : 71,b: 32}, mid); // rgba(95,71,32,1)
+    imgData = change(imgData, {r : 112,g : 95,b: 48}, light); // rgba(112,95,48,1)
 
-    // red
-    var darkred = {r:119,g:30,b:42}; // rgba(116,30,42,1)
-    var midred = {r:187,g:4,b:38}; // rgba(187,4,38,1)
-    var lightred = {r:245,g:88,b:140}; // rgba(245,88,140,1)
-
-    imgData = change(imgData, {r : 64,g : 55,b: 32}, darkred); // rgba(64,55,32,1)
-    imgData = change(imgData, {r : 95,g : 71,b: 32}, midred); // rgba(95,71,32,1)
-    imgData = change(imgData, {r : 112,g : 95,b: 48}, lightred); // rgba(112,95,48,1)
-
+    imgData = change(imgData, {r : 80,g : 128,b: 112}, light); // rgba(80,128,112,1)
+    imgData = change(imgData, {r : 40,g : 120,b: 56}, mid); // rgba(40,120,56,1)
+    imgData = change(imgData, {r : 72,g : 152,b: 72}, light); // rgba(72,152,72,1)
+    imgData = change(imgData, {r : 176,g : 232,b: 184}, lighter); // rgba(176,232,184,1)
 
     context.putImageData(imgData, x, y);
 }

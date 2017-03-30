@@ -13,7 +13,7 @@ import controls from './controls';
 
 const todoApp = combineReducers({
     player: player.events,
-    controls : controls.events
+    controls: controls.events
 })
 
 
@@ -27,8 +27,8 @@ let store = createStore(todoApp);
 // However it can also be handy to persist the current state in the localStorage.
 const render = () => {
     //console.log(store.getState());
-    // document.getElementById("counter").innerHTML = "up "+store.getState().controls.position.up+"<br>down "+store.getState().controls.position.down;
-    // document.getElementById("action").innerHTML = "left "+store.getState().controls.position.left+"<br>right "+store.getState().controls.position.right;
+    // document.getElementById("counter").innerHTML = "up "+store.getState().controls.movement.up+"<br>down "+store.getState().controls.movement.down;
+    // document.getElementById("action").innerHTML = "left "+store.getState().controls.movement.left+"<br>right "+store.getState().controls.movement.right;
 }
 
 store.subscribe(render);
@@ -37,27 +37,39 @@ render();
 const context_main = canvas_main.init();
 canvas_main.initdraw(function(fps) {
 
-  if(store.getState().controls.position.up) {
-    store.dispatch({ type: 'move_up', fps : fps });
-  }
-  if(store.getState().controls.position.down) {
-    store.dispatch({ type: 'move_down', fps : fps });
-  }
-  if(store.getState().controls.position.left) {
-    store.dispatch({ type: 'move_left', fps : fps });
-  }
-  if(store.getState().controls.position.right) {
-    store.dispatch({ type: 'move_right', fps : fps });
-  }
+    if (store.getState().controls.movement.north) {
+        store.dispatch({
+            type: 'move_north',
+            fps: fps
+        });
+    }
+    if (store.getState().controls.movement.south) {
+        store.dispatch({
+            type: 'move_south',
+            fps: fps
+        });
+    }
+    if (store.getState().controls.movement.west) {
+        store.dispatch({
+            type: 'move_west',
+            fps: fps
+        });
+    }
+    if (store.getState().controls.movement.east) {
+        store.dispatch({
+            type: 'move_east',
+            fps: fps
+        });
+    }
 
-  canvas_main.display(store);
-  //canvas.reset();
+    canvas_main.display(store);
+    //canvas.reset();
 });
 
 const context_background = canvas_background.init();
 canvas_background.initdraw(function(fps) {
-  canvas_background.display(store);
-  //canvas.reset();
+    canvas_background.display(store);
+    //canvas.reset();
 });
 
 
@@ -68,35 +80,40 @@ document.onkeydown = function(e) {
     var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
     if (charCode) {
 
-        if(charCode == 17) {
-          window.keydown = "ctrl";
-          return;
+        if (charCode == 17) {
+            window.keydown = "ctrl";
+            return;
         }
 
-        //console.log("Character typed :", String.fromCharCode(charCode),charCode);
+        //console.log("Character typed :", String.fromCharCode(charCode), charCode);
         switch (String.fromCharCode(charCode).toLowerCase()) {
+            case " ":
+                store.dispatch({
+                    type: 'attack'
+                });
+                break;
             case "&":
             case "z":
                 store.dispatch({
-                    type: 'UP'
+                    type: 'north'
                 });
                 break;
             case "(":
             case "s":
                 store.dispatch({
-                    type: 'DOWN'
+                    type: 'south'
                 });
                 break;
             case "%":
             case "q":
                 store.dispatch({
-                    type: 'LEFT'
+                    type: 'west'
                 });
                 break;
             case "'":
             case "d":
                 store.dispatch({
-                    type: 'RIGHT'
+                    type: 'east'
                 });
                 break;
             default:
@@ -111,38 +128,38 @@ document.onkeyup = function(e) {
     if (charCode) {
         //console.log("Character typed: " + String.fromCharCode(charCode));
 
-        if(charCode == 17) {
-          window.keydown = "";
-          return;
+        if (charCode == 17) {
+            window.keydown = "";
+            return;
         }
 
         switch (String.fromCharCode(charCode).toLowerCase()) {
             case "&":
             case "z":
                 store.dispatch({
-                    type: 'UP',
-                    action : 'remove'
+                    type: 'north',
+                    action: 'remove'
                 });
                 break;
             case "(":
             case "s":
                 store.dispatch({
-                    type: 'DOWN',
-                    action : 'remove'
+                    type: 'south',
+                    action: 'remove'
                 });
                 break;
             case "%":
             case "q":
                 store.dispatch({
-                    type: 'LEFT',
-                    action : 'remove'
+                    type: 'west',
+                    action: 'remove'
                 });
                 break;
             case "'":
             case "d":
                 store.dispatch({
-                    type: 'RIGHT',
-                    action : 'remove'
+                    type: 'east',
+                    action: 'remove'
                 });
                 break;
             default:

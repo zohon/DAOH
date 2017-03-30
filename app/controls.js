@@ -10,43 +10,43 @@ const movement = (state = {
     right: false
 }, action) => {
     switch (action.type) {
-        case 'UP':
+        case 'north':
             if (action.action) {
                 return { ...state,
-                    up: false
+                    north: false
                 };
             }
             return { ...state,
-                up: true
+                north: true
             };
-        case 'DOWN':
+        case 'south':
             if (action.action) {
                 return { ...state,
-                    down : false
+                    south : false
                 };
             }
             return { ...state,
-                down : true
-            };
-            return state;
-        case 'LEFT':
-            if (action.action) {
-                return { ...state,
-                    left : false
-                };
-            }
-            return { ...state,
-              left : true
+                south : true
             };
             return state;
-        case 'RIGHT':
+        case 'west':
             if (action.action) {
                 return { ...state,
-                    right : false
+                    west : false
                 };
             }
             return { ...state,
-                right : true
+              west : true
+            };
+            return state;
+        case 'east':
+            if (action.action) {
+                return { ...state,
+                    east : false
+                };
+            }
+            return { ...state,
+                east : true
             };
             return state;
         default:
@@ -66,8 +66,8 @@ const action = (state = 0, action) => {
 }
 
 const events = combineReducers({
-    position: movement,
-    action: action
+    movement,
+    action
 });
 
 module.exports = {

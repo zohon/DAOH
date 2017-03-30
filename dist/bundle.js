@@ -459,18 +459,37 @@ var createBlock = function createBlock(datas) {
         'y': datas.y
     });
 
-    getNear({
-        x: datas.x,
-        y: datas.y
-    });
-
     if (!block) {
+        getNear({
+            x: datas.x,
+            y: datas.y
+        });
         map.push({
             x: datas.x,
             y: datas.y,
             type: "block",
             status: "new"
         });
+    }
+};
+
+var createBlocks = function createBlocks(datas) {
+
+    var multiX = 4;
+    var multiY = 4;
+
+    var data = {
+        x: datas.x - 16 * (multiX / 2),
+        y: datas.y - 16 * (multiY / 2)
+    };
+
+    for (var nbX = 0; nbX < multiX; nbX++) {
+        for (var nbY = 0; nbY < multiY; nbY++) {
+            createBlock({
+                x: data.x + nbX * 16,
+                y: data.y + nbY * 16
+            });
+        }
     }
 };
 
@@ -666,7 +685,7 @@ var mouseAction = function mouseAction(params) {
             } else {
                 newX = lastbackgroundMouse.x + x * 16;
             }
-            createBlock({
+            createBlocks({
                 x: newX,
                 y: backgroundMouse.y
             });
@@ -679,14 +698,14 @@ var mouseAction = function mouseAction(params) {
             } else {
                 newY = lastbackgroundMouse.y + y * 16;
             }
-            createBlock({
+            createBlocks({
                 x: backgroundMouse.x,
                 y: newY
             });
         }
     }
     lastbackgroundMouse = backgroundMouse;
-    createBlock(backgroundMouse);
+    createBlocks(backgroundMouse);
 };
 
 var display = function display(store) {
@@ -856,19 +875,32 @@ var display = function display(store) {
 
                     modify(context, 0 + x, 0 + y, 16, 16);
 
-                    if (!tile.block && Math.random() < 0.2) {
-                        if (Math.random() < 0.3) {
+                    if (!tile.lock && Math.random() <= 0.1) {
+                        var randomGrass = Math.random();
+                        if (randomGrass >= 0.9) {
+                            tile.type = 'grass';
+                            tile.status = "update";
+                            tile.solid = false;
+                            tile.element = 6;
+                        } else if (randomGrass >= 0.8) {
+                            tile.type = 'grass';
+                            tile.status = "update";
+                            tile.solid = false;
+                            tile.element = 4;
+                        } else if (randomGrass > 0.6) {
                             tile.type = 'bush';
                             tile.status = "update";
                             tile.element = 0;
-                            tile.block = true;
+                            tile.solid = true;
+                            tile.lock = true;
                         } else {
                             tile.type = 'grass';
                             tile.status = "update";
+                            tile.solid = false;
                             tile.element = 1;
                         }
                     } else {
-                        tile.block = true;
+                        tile.lock = true;
                     }
 
                     return;
@@ -970,7 +1002,20 @@ var display = function display(store) {
                 modify(context, 0 + x, 0 + y, 16, 16);
 
                 break;
+            case "desert":
+                context.fillStyle = "#705f30";
+                context.fillRect(0 + x, 0 + y, 16, 16);
+                context.drawImage(tilesImage.element, 16 * 1, 16 * 8, 16, 16, 0 + x, 0 + y, 16, 16);
+                modify(context, 0 + x, 0 + y, 16, 16);
+                break;
+            case "lava":
+                context.fillStyle = "#705f30";
+                context.fillRect(0 + x, 0 + y, 16, 16);
+                context.drawImage(tilesImage.element, 16 * 0, 16 * 8, 16, 16, 0 + x, 0 + y, 16, 16);
+                modify(context, 0 + x, 0 + y, 16, 16);
+                break;
             case "bush":
+                tile.status = "done";
                 context.fillStyle = "#705f30";
                 context.fillRect(0 + x, 0 + y, 16, 16);
                 context.drawImage(tilesImage.element, 16 * (1 + tile.element), 16 * 1, 16, 16, 0 + x, 0 + y, 16, 16);
@@ -979,7 +1024,11 @@ var display = function display(store) {
             case "grass":
                 context.fillStyle = "#705f30";
                 context.fillRect(0 + x, 0 + y, 16, 16);
-                if (tile.element == 1) {
+
+                if (tile.effect) {
+                    tile.type = 'block';
+                    tile.lock = 'true';
+                } else if (tile.element == 1) {
 
                     var tagetFlower = 0;
                     if (animFlower > 0) {
@@ -988,8 +1037,10 @@ var display = function display(store) {
 
                     context.drawImage(tilesImage.element, 16 * tile.element + tagetFlower, 0, 16, 16, 0 + x, 0 + y, 16, 16);
                 } else if (tile.element) {
+                    tile.status = "done";
                     context.drawImage(tilesImage.element, 16 * tile.element, 0, 16, 16, 0 + x, 0 + y, 16, 16);
                 }
+
                 modify(context, 0 + x, 0 + y, 16, 16);
                 break;
             default:
@@ -1001,40 +1052,69 @@ var display = function display(store) {
         animFlower = -1;
     }
 };
-var modify = function modify(context, x, y) {
+var modify = function modify(context, x, y, width, height) {
+    var effect = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : "forest";
+
+
     var contrast = 100;
     var factor = 259 * (contrast + 255) / (255 * (259 - contrast));
 
-    var imgData = context.getImageData(x, y, 32, 32);
+    var imgData = context.getImageData(x, y, width, height);
 
-    // green
+    var dark = { r: 0, g: 0, b: 0 }; // rgba(0,0,0,1)
+    var mid = { r: 0, g: 0, b: 0 }; // rgba(0,0,0,1)
+    var light = { r: 0, g: 0, b: 0 }; // rgba(0,0,0,1)
+    var lighter = { r: 0, g: 0, b: 0 }; // rgba(0,0,0,1)
 
-    var darkgreen = { r: 67, g: 121, b: 13 }; // rgba(67,121,13,1)
-    var midgreen = { r: 80, g: 144, b: 16 }; // rgba(80,144,16,1)
-    var lightgreen = { r: 120, g: 184, b: 32 }; // rgba(120,184,32,1)
+    switch (effect) {
+        case "forest":
+            // green
+            dark = { r: 40, g: 104, b: 64 }; // rgba(40,104,64,1)
+            mid = { r: 64, g: 120, b: 64 }; // rgba(64,120,64,1)
+            light = { r: 72, g: 152, b: 72 }; // rgba(72,152,72,1)
+            lighter = { r: 176, g: 232, b: 184 }; // rgba(176,232,184,1)
+            break;
+        case "ice":
+            // blue
+            dark = { r: 38, g: 97, b: 167 }; // rgba(38,97,167,1)
+            mid = { r: 84, g: 137, b: 225 }; // rgba(84,137,225,1)
+            light = { r: 54, g: 177, b: 236 }; // rgba(54,177,236,1)
+            lighter = { r: 129, g: 202, b: 236 }; // rgba(129,202,236,1)
+            break;
+        case "desert":
+            // yellow
+            dark = { r: 72, g: 56, b: 40 }; // rgba(72,56,40,1)
+            mid = { r: 96, g: 72, b: 40 }; // rgba(96,72,40,1)
+            light = { r: 144, g: 128, b: 72 }; // rgba(144,128,72,1)
+            lighter = { r: 186, g: 188, b: 138 }; // rgba(186,188,138,1)
+            break;
+        case "lava":
+            // red
+            dark = { r: 144, g: 24, b: 24 }; // rgba(144,24,24,1)
+            mid = { r: 224, g: 32, b: 32 }; // rgba(224,32,32,1)
+            light = { r: 248, g: 120, b: 32 }; // rgba(248,120,32,1)
+            lighter = { r: 247, g: 165, b: 110 }; // rgba(247,165,110,1)
+            break;
+        case "grey":
+            // grey
 
-    imgData = change(imgData, { r: 64, g: 55, b: 32 }, darkgreen); // rgba(64,55,32,1)
-    imgData = change(imgData, { r: 95, g: 71, b: 32 }, midgreen); // rgba(95,71,32,1)
-    imgData = change(imgData, { r: 112, g: 95, b: 48 }, lightgreen); // rgba(112,95,48,1)
+            dark = { r: 54, g: 54, b: 54 }; // rgba(36,36,36,1)
+            mid = { r: 73, g: 73, b: 73 }; // rgba(73,73,73,1)
+            light = { r: 93, g: 93, b: 93 }; // rgba(93,93,93,1)
+            lighter = { r: 150, g: 150, b: 150 }; // rgba(150,150,150,1)
+            break;
 
-    // blue
-    var darkblue = { r: 38, g: 97, b: 167 }; // rgba(38,97,167,1)
-    var midblue = { r: 84, g: 137, b: 225 }; // rgba(84,137,225,1)
-    var lightblue = { r: 54, g: 177, b: 236 }; // rgba(54,177,236,1)
+        default:
+    }
 
-    // imgData = change(imgData, {r : 64,g : 55,b: 32}, darkblue);  // rgba(64,55,32,1)
-    // imgData = change(imgData, {r : 95,g : 71,b: 32}, midblue); // rgba(95,71,32,1)
-    // imgData = change(imgData, {r : 112,g : 95,b: 48}, lightblue); // rgba(112,95,48,1)
+    imgData = change(imgData, { r: 64, g: 55, b: 32 }, dark); // rgba(64,55,32,1)
+    imgData = change(imgData, { r: 95, g: 71, b: 32 }, mid); // rgba(95,71,32,1)
+    imgData = change(imgData, { r: 112, g: 95, b: 48 }, light); // rgba(112,95,48,1)
 
-    // red
-    var darkred = { r: 119, g: 30, b: 42 }; // rgba(116,30,42,1)
-    var midred = { r: 187, g: 4, b: 38 }; // rgba(187,4,38,1)
-    var lightred = { r: 245, g: 88, b: 140 }; // rgba(245,88,140,1)
-
-    imgData = change(imgData, { r: 64, g: 55, b: 32 }, darkred); // rgba(64,55,32,1)
-    imgData = change(imgData, { r: 95, g: 71, b: 32 }, midred); // rgba(95,71,32,1)
-    imgData = change(imgData, { r: 112, g: 95, b: 48 }, lightred); // rgba(112,95,48,1)
-
+    imgData = change(imgData, { r: 80, g: 128, b: 112 }, light); // rgba(80,128,112,1)
+    imgData = change(imgData, { r: 40, g: 120, b: 56 }, mid); // rgba(40,120,56,1)
+    imgData = change(imgData, { r: 72, g: 152, b: 72 }, light); // rgba(72,152,72,1)
+    imgData = change(imgData, { r: 176, g: 232, b: 184 }, lighter); // rgba(176,232,184,1)
 
     context.putImageData(imgData, x, y);
 };
@@ -1096,6 +1176,75 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var speedinfo = 100; // pixel par seconde
 
+
+var listenaction = function listenaction(state, action) {
+
+    switch (action.type) {
+        case 'attack':
+            state = _extends({}, state, {
+                animation: _extends({}, state.animation, {
+                    type: 'attack',
+                    duration: 2
+                })
+            });
+            var anti = anticipation(action.type, state.movement);
+            if (state.animation.direction) {
+                var direction = state.animation.direction;
+
+                var targetBlock = 'block' + direction.charAt(0).toUpperCase() + direction.slice(1);
+                if (state.animation && state.animation.direction && anti && anti.near && anti.near[targetBlock]) {
+                    switch (anti.near[targetBlock].type) {
+                        case "bush":
+                            anti.near[targetBlock].solid = false;
+                            anti.near[targetBlock].element = 1;
+                            anti.near[targetBlock].status = "update";
+                            break;
+                        default:
+                    }
+                }
+            }
+            break;
+        case 'defend':
+            break;
+        case 'dodge':
+            break;
+        default:
+    }
+
+    if (state) {
+        return state;
+    }
+};
+
+var events = function events() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
+        movement: {
+            x: 0,
+            y: 0
+        },
+        animation: {
+            direction: "null",
+            status: false
+        }
+    };
+    var action = arguments[1];
+
+
+    var state = _extends({}, state, {
+        animation: animation(state.animation, action)
+    });
+
+    if (!state.animation.type) {
+        var state = _extends({}, state, {
+            movement: movement(state.movement, action)
+        });
+    }
+
+    state = listenaction(state, action);
+
+    return state;
+};
+
 var movement = function movement() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
         x: 0,
@@ -1106,100 +1255,48 @@ var movement = function movement() {
 
     var speed = speedinfo / 60;
     if (action.fps) {
+        if (action.fps < 30) {
+            action.fps = 30;
+        }
         speed = speedinfo / action.fps;
     }
 
     var startState = _extends({}, state);
 
-    switch (action.type) {
-        case 'move_up':
-            state.y -= speed;
-            break;
-        case 'move_down':
-            state.y += speed;
-            break;
-        case 'move_left':
-            state.x -= speed;
-            break;
-        case 'move_right':
-            state.x += speed;
-            break;
-        default:
+    if (action.type) {
+        switch (action.type) {
+            case 'move_north':
+                state = _extends({}, state, {
+                    y: state.y - speed
+                });
+                //state.y -= speed;
+                break;
+            case 'move_south':
+                state = _extends({}, state, {
+                    y: state.y + speed
+                });
+                break;
+            case 'move_west':
+                state = _extends({}, state, {
+                    x: state.x - speed
+                });
+                break;
+            case 'move_east':
+                state = _extends({}, state, {
+                    x: state.x + speed
+                });
+                break;
+            default:
+        }
     }
 
     var anti = anticipation(action.type, state);
 
-    if (anti && anti.near && (!anti.near.block || anti.near.block.type == 'bush')) {
+    if (anti && anti.near && (!anti.near.block || anti.near.block.solid)) {
         return startState;
     }
 
     return state;
-};
-
-var anticipation = function anticipation(type, target) {
-
-    if (!type) {
-        return;
-    }
-
-    var anticipationX = 8;
-    var anticipationY = 18;
-
-    switch (type.toLowerCase()) {
-        case 'up':
-        case 'move_up':
-            anticipationY -= 8;
-            break;
-        case 'down':
-        case 'move_down':
-            anticipationY += 8;
-            break;
-        case 'move_left':
-            anticipationX = -8;
-            break;
-        case 'move_right':
-            anticipationX += 8;
-            break;
-        default:
-    }
-
-    var params = {
-        x: Math.round((target.x + anticipationX) / 16) * 16,
-        y: Math.round((target.y + anticipationY) / 16) * 16,
-        look: true
-    };
-
-    var near = _canvas_background2.default.getNear(params);
-
-    if (false) {
-
-        _canvas_debug2.default.debugContext.fillStyle = "rgba(0,255,0,0.5)";
-        if (!near.block) {
-            _canvas_debug2.default.debugContext.fillStyle = "rgba(255,0,0,0.5)";
-        }
-
-        _canvas_debug2.default.debugContext.clearRect(0, 0, debug.width, debug.height);
-        _canvas_debug2.default.debugContext.fillRect(Math.round((target.x + anticipationX) / 16) * 16, Math.round((target.y + anticipationY) / 16) * 16, 16, 16);
-    }
-
-    return {
-        near: near,
-        anticipate: params
-    };
-};
-
-var action = function action() {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var action = arguments[1];
-
-    switch (action.type) {
-        case 'INCREMENT':
-            return state + 1;
-        case 'DECREMENT':
-            return state - 1;
-        default:
-            return state;
-    }
 };
 
 var animation = function animation() {
@@ -1212,23 +1309,86 @@ var animation = function animation() {
 
     state.status = true;
     switch (action.type) {
-        case 'move_up':
-            state.direction = "up";
-            return state;
-        case 'move_down':
-            state.direction = "down";
-            return state;
-        case 'move_left':
-            state.direction = "left";
-            return state;
-        case 'move_right':
-            state.direction = "right";
-            return state;
+        case 'move_north':
+            return _extends({}, state, {
+                direction: "north",
+                status: true
+            });
+        case 'move_south':
+            return _extends({}, state, {
+                direction: "south",
+                status: true
+            });
+        case 'move_west':
+            return _extends({}, state, {
+                direction: "west",
+                status: true
+            });
+        case 'move_east':
+            return _extends({}, state, {
+                direction: "east",
+                status: true
+            });
         default:
-            //state.direction = "";
-            state.status = false;
-            return state;
+            return _extends({}, state, {
+                status: "false"
+            });
     }
+};
+
+var anticipation = function anticipation(type, target) {
+
+    if (!type) {
+        return;
+    }
+
+    var anticipationX = 6;
+    var anticipationY = 16;
+
+    if (type) {
+        switch (type.toLowerCase()) {
+            case 'north':
+            case 'move_north':
+                anticipationY -= 8;
+                break;
+            case 'south':
+            case 'move_south':
+                anticipationY += 8;
+                break;
+            case 'west':
+            case 'move_west':
+                anticipationX = -2;
+                break;
+            case 'east':
+            case 'move_east':
+                anticipationX += 8;
+                break;
+            default:
+        }
+    }
+
+    var params = {
+        x: Math.round((target.x + anticipationX) / 16) * 16,
+        y: Math.round((target.y + anticipationY) / 16) * 16,
+        look: true
+    };
+
+    var near = _canvas_background2.default.getNear(params);
+
+    if (false) {
+        _canvas_debug2.default.debugContext.clearRect(0, 0, debug.width, debug.height);
+        _canvas_debug2.default.debugContext.fillStyle = "rgba(0,255,0,0.5)";
+        if (!near.block || near.block.type == 'bush') {
+            _canvas_debug2.default.debugContext.fillStyle = "rgba(255,0,0,0.5)";
+        }
+
+        _canvas_debug2.default.debugContext.fillRect(params.x, params.y, 16, 16);
+    }
+
+    return {
+        near: near,
+        anticipate: params
+    };
 };
 
 window.targetanimation = 0;
@@ -1240,7 +1400,6 @@ var draw = function draw(context, target) {
 
     if (body && body.status) {
         targetanimation += 8;
-        //console.log(targetanimation % 32);
 
         if (targetanimation % 32 == 0) {
             targetanimationpos += 32;
@@ -1250,20 +1409,20 @@ var draw = function draw(context, target) {
         }
 
         var pos = 0;
-        if (target.animation.direction == "right") {
+        if (target.animation.direction == "east") {
             pos = 32;
         }
-        if (target.animation.direction == "down") {
+        if (target.animation.direction == "south") {
             pos = 64;
         }
-        if (target.animation.direction == "up") {
+        if (target.animation.direction == "north") {
             pos = 96;
         }
 
-        if (!target.animation.status) {
+        if (target.animation.status == "false") {
             targetanimationpos = 0;
         }
-        context.drawImage(body.element, targetanimationpos, pos, 32, 32, target.position.x, target.position.y + 7, 32, 32);
+        context.drawImage(body.element, targetanimationpos, pos, 32, 32, target.movement.x, target.movement.y + 7, 32, 32);
     }
 
     // Head
@@ -1272,24 +1431,61 @@ var draw = function draw(context, target) {
     if (head && head.status) {
         var pos = 0;
         var targetanimationposHead = targetanimationpos;
-        if (target.animation.direction == "right") {
+        if (target.animation.direction == "east") {
             pos = 32;
         }
-        if (target.animation.direction == "down") {
+        if (target.animation.direction == "south") {
             pos = 64;
             //targetanimationposHead = 0;
         }
-        if (target.animation.direction == "up") {
+        if (target.animation.direction == "north") {
             pos = 96;
             //targetanimationposHead = 0;
         }
-        if (!target.animation.status) {
+        if (target.animation.status == "false") {
             targetanimationposHead = 0;
         }
-        context.drawImage(head.element, targetanimationposHead, pos, 32, 32, target.position.x, target.position.y, 32, 32);
+        context.drawImage(head.element, targetanimationposHead, pos, 32, 32, target.movement.x, target.movement.y, 32, 32);
     }
 
-    modify(context, target.position.x, target.position.y);
+    // action
+    if (target.animation.type && target.animation.duration) {
+        console.log(target.animation.type);
+
+        var posX = 8;
+        var posY = 16;
+
+        switch (target.animation.type) {
+            case "attack":
+                context.fillStyle = "rgba(0,255,0,0.5)";
+                target.animation.duration -= 0.1;
+                if (target.animation.duration < 0) {
+                    target.animation.duration = 0;
+                    target.animation.type = null;
+                }
+                switch (target.animation.direction) {
+                    case "north":
+                        posY -= 16;
+                        break;
+                    case "south":
+                        posY += 16;
+                        break;
+                    case "west":
+                        posX -= 16;
+                        break;
+                    case "east":
+                        posX += 16;
+                        break;
+                    default:
+
+                }
+                context.fillRect(target.movement.x + posX, target.movement.y + posY, 16, 16);
+                break;
+            default:
+        }
+    }
+
+    modify(context, target.movement.x, target.movement.y);
 
     return context;
 };
@@ -1301,25 +1497,69 @@ var modify = function modify(context, x, y) {
     var imgData = context.getImageData(x, y, 32, 32);
     //imgData = fufu(imgData);
 
-    imgData = change(imgData, { r: 236, g: 96, b: 180 }, { r: 234, g: 192, b: 67 }); // air rgba(236,96,180,1) rgba(234,192,67,1)
-    imgData = change(imgData, { r: 255, g: 120, b: 0 }, { r: 234, g: 192, b: 67 }); // air rgba(255,120,0,1) rgba(234,192,67,1)
+    imgData = change(imgData, {
+        r: 236,
+        g: 96,
+        b: 180
+    }, {
+        r: 234,
+        g: 192,
+        b: 67
+    }); // air rgba(236,96,180,1) rgba(234,192,67,1)
+    imgData = change(imgData, {
+        r: 255,
+        g: 120,
+        b: 0
+    }, {
+        r: 234,
+        g: 192,
+        b: 67
+    }); // air rgba(255,120,0,1) rgba(234,192,67,1)
 
     // blue
 
-    var darkblue = { r: 38, g: 97, b: 167 }; // rgba(38,97,167,1)
-    var lightblue = { r: 54, g: 177, b: 236 }; // rgba(54,177,236,1)
+    var darkblue = {
+        r: 38,
+        g: 97,
+        b: 167
+    }; // rgba(38,97,167,1)
+    var lightblue = {
+        r: 54,
+        g: 177,
+        b: 236
+    }; // rgba(54,177,236,1)
     //
     // imgData = change(imgData, {r : 80,g : 144,b: 16}, darkblue); // rgba(80,144,16,1)
     // imgData = change(imgData, {r : 140,g : 88,b: 40}, darkblue); // rgba(140,88,40,1)
     // imgData = change(imgData, {r : 120,g : 184,b: 32}, lightblue); // rgba(120,184,32,1)
 
     // red
-    var darkred = { r: 187, g: 4, b: 38 }; // rgba(187,4,38,1)
-    var lightred = { r: 245, g: 88, b: 140 }; // rgba(245,88,140,1)
+    var darkred = {
+        r: 187,
+        g: 4,
+        b: 38
+    }; // rgba(187,4,38,1)
+    var lightred = {
+        r: 245,
+        g: 88,
+        b: 140
+    }; // rgba(245,88,140,1)
 
-    imgData = change(imgData, { r: 80, g: 144, b: 16 }, darkred); // rgba(80,144,16,1)
-    imgData = change(imgData, { r: 140, g: 88, b: 40 }, darkred); // rgba(140,88,40,1)
-    imgData = change(imgData, { r: 120, g: 184, b: 32 }, lightred); // rgba(120,184,32,1)
+    imgData = change(imgData, {
+        r: 80,
+        g: 144,
+        b: 16
+    }, darkred); // rgba(80,144,16,1)
+    imgData = change(imgData, {
+        r: 140,
+        g: 88,
+        b: 40
+    }, darkred); // rgba(140,88,40,1)
+    imgData = change(imgData, {
+        r: 120,
+        g: 184,
+        b: 32
+    }, lightred); // rgba(120,184,32,1)
 
 
     context.putImageData(imgData, x, y);
@@ -1366,11 +1606,11 @@ var change = function change(imgData, startRGB, endRGB) {
     return imgData;
 };
 
-var events = (0, _redux.combineReducers)({
-    position: movement,
-    action: action,
-    animation: animation
-});
+// const events = combineReducers({
+//     // listenaction,
+//     position: movement,
+//     animation: animation
+// });
 
 module.exports = {
     events: events,
@@ -2884,43 +3124,43 @@ var movement = function movement() {
     var action = arguments[1];
 
     switch (action.type) {
-        case 'UP':
+        case 'north':
             if (action.action) {
                 return _extends({}, state, {
-                    up: false
+                    north: false
                 });
             }
             return _extends({}, state, {
-                up: true
+                north: true
             });
-        case 'DOWN':
+        case 'south':
             if (action.action) {
                 return _extends({}, state, {
-                    down: false
+                    south: false
                 });
             }
             return _extends({}, state, {
-                down: true
-            });
-            return state;
-        case 'LEFT':
-            if (action.action) {
-                return _extends({}, state, {
-                    left: false
-                });
-            }
-            return _extends({}, state, {
-                left: true
+                south: true
             });
             return state;
-        case 'RIGHT':
+        case 'west':
             if (action.action) {
                 return _extends({}, state, {
-                    right: false
+                    west: false
                 });
             }
             return _extends({}, state, {
-                right: true
+                west: true
+            });
+            return state;
+        case 'east':
+            if (action.action) {
+                return _extends({}, state, {
+                    east: false
+                });
+            }
+            return _extends({}, state, {
+                east: true
             });
             return state;
         default:
@@ -2943,7 +3183,7 @@ var action = function action() {
 };
 
 var events = (0, _redux.combineReducers)({
-    position: movement,
+    movement: movement,
     action: action
 });
 
@@ -10565,8 +10805,8 @@ var store = (0, _redux.createStore)(todoApp);
 // However it can also be handy to persist the current state in the localStorage.
 var render = function render() {
     //console.log(store.getState());
-    // document.getElementById("counter").innerHTML = "up "+store.getState().controls.position.up+"<br>down "+store.getState().controls.position.down;
-    // document.getElementById("action").innerHTML = "left "+store.getState().controls.position.left+"<br>right "+store.getState().controls.position.right;
+    // document.getElementById("counter").innerHTML = "up "+store.getState().controls.movement.up+"<br>down "+store.getState().controls.movement.down;
+    // document.getElementById("action").innerHTML = "left "+store.getState().controls.movement.left+"<br>right "+store.getState().controls.movement.right;
 };
 
 store.subscribe(render);
@@ -10575,17 +10815,29 @@ render();
 var context_main = _canvas_main2.default.init();
 _canvas_main2.default.initdraw(function (fps) {
 
-    if (store.getState().controls.position.up) {
-        store.dispatch({ type: 'move_up', fps: fps });
+    if (store.getState().controls.movement.north) {
+        store.dispatch({
+            type: 'move_north',
+            fps: fps
+        });
     }
-    if (store.getState().controls.position.down) {
-        store.dispatch({ type: 'move_down', fps: fps });
+    if (store.getState().controls.movement.south) {
+        store.dispatch({
+            type: 'move_south',
+            fps: fps
+        });
     }
-    if (store.getState().controls.position.left) {
-        store.dispatch({ type: 'move_left', fps: fps });
+    if (store.getState().controls.movement.west) {
+        store.dispatch({
+            type: 'move_west',
+            fps: fps
+        });
     }
-    if (store.getState().controls.position.right) {
-        store.dispatch({ type: 'move_right', fps: fps });
+    if (store.getState().controls.movement.east) {
+        store.dispatch({
+            type: 'move_east',
+            fps: fps
+        });
     }
 
     _canvas_main2.default.display(store);
@@ -10610,30 +10862,35 @@ document.onkeydown = function (e) {
             return;
         }
 
-        //console.log("Character typed :", String.fromCharCode(charCode),charCode);
+        //console.log("Character typed :", String.fromCharCode(charCode), charCode);
         switch (String.fromCharCode(charCode).toLowerCase()) {
+            case " ":
+                store.dispatch({
+                    type: 'attack'
+                });
+                break;
             case "&":
             case "z":
                 store.dispatch({
-                    type: 'UP'
+                    type: 'north'
                 });
                 break;
             case "(":
             case "s":
                 store.dispatch({
-                    type: 'DOWN'
+                    type: 'south'
                 });
                 break;
             case "%":
             case "q":
                 store.dispatch({
-                    type: 'LEFT'
+                    type: 'west'
                 });
                 break;
             case "'":
             case "d":
                 store.dispatch({
-                    type: 'RIGHT'
+                    type: 'east'
                 });
                 break;
             default:
@@ -10657,28 +10914,28 @@ document.onkeyup = function (e) {
             case "&":
             case "z":
                 store.dispatch({
-                    type: 'UP',
+                    type: 'north',
                     action: 'remove'
                 });
                 break;
             case "(":
             case "s":
                 store.dispatch({
-                    type: 'DOWN',
+                    type: 'south',
                     action: 'remove'
                 });
                 break;
             case "%":
             case "q":
                 store.dispatch({
-                    type: 'LEFT',
+                    type: 'west',
                     action: 'remove'
                 });
                 break;
             case "'":
             case "d":
                 store.dispatch({
-                    type: 'RIGHT',
+                    type: 'east',
                     action: 'remove'
                 });
                 break;
