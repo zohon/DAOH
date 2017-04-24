@@ -1,5 +1,6 @@
 
 import player from './player';
+import monster from './monster';
 var canvas = document.getElementById('main');
 var context = canvas.getContext('2d');
 context.scale(2, 2);
@@ -62,6 +63,8 @@ const display = (store) => {
   reset();
   context.imageSmoothingEnabled = false;
   player.draw(context, store.getState().player);
+
+  monster.draw(context, store.getState().monster);
 }
 
 

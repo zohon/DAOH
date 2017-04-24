@@ -12,7 +12,6 @@ const speedinfo = 100; // pixel par seconde
 
 const listenaction = (state, action) => {
 
-
     switch (action.type) {
         case 'attack':
             state = { ...state,
@@ -233,10 +232,9 @@ const draw = (context, target) => {
 
     // BODY
     var body = utils.getImage('media/body.png');
-    context.clearRect(target.movement.x-32, target.movement.y-32, 64, 64);
 
     if (body && body.status) {
-        targetanimation += 4;
+        targetanimation += 8;
 
         if (targetanimation % 32 == 0) {
             targetanimationpos += 32;
@@ -259,7 +257,6 @@ const draw = (context, target) => {
         if (target.animation.status == "false") {
             targetanimationpos = 0;
         }
-
         context.drawImage(body.element, targetanimationpos, pos, 32, 32, target.movement.x, target.movement.y + 7, 32, 32);
     }
 
@@ -328,7 +325,7 @@ const draw = (context, target) => {
       }
     }
 
-  //  modify(context, target.movement.x, target.movement.y);
+    modify(context, target.movement.x, target.movement.y);
 
     return context;
 }

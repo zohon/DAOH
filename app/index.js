@@ -9,13 +9,14 @@ import deepFreeze from "deep-freeze"
 import canvas_main from './canvas_main';
 import canvas_background from './canvas_background';
 import player from './player';
+import monster from './monster';
 import controls from './controls';
 
 const todoApp = combineReducers({
     player: player.events,
+    monster: monster.events,
     controls: controls.events
 })
-
 
 
 // Create a Redux store holding the state of your app.
@@ -65,12 +66,14 @@ canvas_main.initdraw(function(fps) {
     canvas_main.display(store);
     //canvas.reset();
 });
+window.onload = function(){
+  const context_background = canvas_background.init();
+  canvas_background.initdraw(function(fps) {
+      canvas_background.display(store);
+      //canvas.reset();
+  });
+};
 
-const context_background = canvas_background.init();
-canvas_background.initdraw(function(fps) {
-    canvas_background.display(store);
-    //canvas.reset();
-});
 
 
 //listener
